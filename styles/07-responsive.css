@@ -1,0 +1,186 @@
+/* 第一层响应式规则和系统动态效果偏好 */
+
+/* ---- 07 响应式第一遍（含 reduced-motion） ---- */
+@media (min-width: 1500px) {
+  .app-header {
+    padding-right: max(5vw, calc((100vw - 1260px) / 2));
+    padding-left: max(5vw, calc((100vw - 1260px) / 2));
+  }
+}
+
+@media (max-width: 760px) {
+  .app-header {
+    height: 62px;
+    padding: 0 18px;
+  }
+  .header-meta {
+    gap: 9px;
+    font-size: 10px;
+  }
+  .brand-mark {
+    width: 32px;
+    height: 32px;
+  }
+  .app-footer {
+    padding: 15px 18px 19px;
+  }
+  .home-page,
+  .management-page,
+  .ending-page {
+    padding: 28px 18px 35px;
+  }
+  .campaign-banner {
+    grid-template-columns: 1fr;
+    gap: 11px;
+    padding: 20px;
+  }
+  .season-number {
+    order: -1;
+  }
+  .resource-strip {
+    gap: 7px;
+  }
+  .resource-item {
+    flex: 1;
+    min-width: 0;
+    padding: 9px;
+  }
+  .home-grid,
+  .management-layout,
+  .ending-grid {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+  .team-panel {
+    padding-top: 0;
+  }
+  .role-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .performance-page {
+    min-height: calc(100vh - 112px);
+    padding: 17px 14px 24px;
+  }
+  .performance-topbar {
+    align-items: start;
+  }
+  .performance-controls {
+    gap: 5px;
+  }
+  .performance-controls .quiet-button {
+    padding: 0 9px;
+    font-size: 10px;
+  }
+  .performance-stats {
+    margin-top: 19px;
+  }
+  .stage-scene {
+    height: min(46vh, 340px);
+    min-height: 225px;
+    margin-top: 13px;
+  }
+  .management-heading {
+    align-items: start;
+  }
+  .ending-hero {
+    padding: 21px;
+  }
+  .ending-stamp {
+    width: 74px;
+    height: 74px;
+    font-size: 15px;
+  }
+}
+
+@media (max-width: 420px) {
+  .single-player,
+  .header-divider {
+    display: none;
+  }
+  .home-page,
+  .management-page,
+  .ending-page {
+    padding-right: 14px;
+    padding-left: 14px;
+  }
+  .show-card {
+    grid-template-columns: 33px minmax(0, 1fr) auto;
+    gap: 9px;
+    padding: 10px;
+  }
+  .show-card h3 {
+    font-size: 13px;
+  }
+  .show-state {
+    padding: 5px 6px;
+    font-size: 9px;
+  }
+  .resource-strip {
+    flex-direction: column;
+  }
+  .resource-item {
+    width: 100%;
+  }
+  .show-title-wrap {
+    gap: 8px;
+  }
+  .stage-index {
+    width: 32px;
+    height: 32px;
+  }
+  .performance-title h1 {
+    font-size: 14px;
+  }
+  .performance-title .eyebrow {
+    font-size: 8px;
+  }
+  .performance-controls .quiet-button {
+    min-height: 33px;
+    padding: 0 7px;
+    font-size: 9px;
+  }
+  .stat-block strong {
+    font-size: 20px;
+  }
+  .action-button {
+    grid-template-columns: 34px minmax(0, 1fr) auto;
+    gap: 8px;
+    padding: 8px;
+  }
+  .action-index {
+    width: 30px;
+    height: 30px;
+  }
+  .action-copy small {
+    font-size: 9px;
+  }
+  .ending-hero {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 9px;
+    padding: 17px;
+  }
+  .ending-stamp {
+    width: 63px;
+    height: 63px;
+    font-size: 13px;
+  }
+  .ending-result-row {
+    grid-template-columns: 24px minmax(0, 1fr) auto;
+    gap: 8px;
+    padding: 11px 9px;
+  }
+  .ending-result-row span:nth-of-type(2) {
+    grid-column: 2;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

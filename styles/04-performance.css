@@ -1,0 +1,255 @@
+/* 演出页面基础样式 */
+
+/* ---- 04 演出页：顶栏/记分/舞台/判定/暂停 ---- */
+.performance-page {
+  min-height: calc(100vh - 130px);
+  padding: 23px max(5vw, 20px) 34px;
+  background: var(--night);
+  color: white;
+}
+.performance-shell {
+  max-width: 1120px;
+  margin: 0 auto;
+}
+.performance-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+.show-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.stage-index {
+  width: 37px;
+  height: 37px;
+  display: grid;
+  place-items: center;
+  border: 1px solid #526272;
+  border-radius: 5px;
+  color: var(--mint);
+  font-size: 11px;
+  font-weight: 800;
+}
+.performance-title {
+  min-width: 0;
+}
+.performance-title .eyebrow {
+  margin-bottom: 2px;
+  color: var(--mint);
+  font-size: 9px;
+}
+.performance-title h1 {
+  overflow: hidden;
+  margin: 0;
+  font-size: 17px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.performance-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.performance-controls .quiet-button {
+  border-color: #435464;
+  background: transparent;
+  color: white;
+}
+.performance-controls .quiet-button:hover {
+  background: #223647;
+}
+.performance-stats {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: end;
+  gap: 14px;
+  margin-top: 21px;
+}
+.stat-block {
+  display: grid;
+  gap: 3px;
+}
+.stat-block:last-child {
+  text-align: right;
+}
+.stat-block span {
+  color: #9eaeba;
+  font-size: 10px;
+}
+.stat-block strong {
+  font-size: 23px;
+  font-variant-numeric: tabular-nums;
+}
+.combo-block {
+  display: grid;
+  justify-items: center;
+  color: var(--yellow);
+}
+.combo-block strong {
+  font-size: 19px;
+  font-variant-numeric: tabular-nums;
+}
+.combo-block span {
+  color: #9eaeba;
+  font-size: 9px;
+  text-transform: uppercase;
+}
+.progress-track {
+  height: 4px;
+  overflow: hidden;
+  margin-top: 13px;
+  border-radius: 2px;
+  background: #304353;
+}
+.progress-fill {
+  width: 100%;
+  height: 100%;
+  background: var(--mint);
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+.stage-scene {
+  position: relative;
+  height: min(48vh, 360px);
+  min-height: 230px;
+  overflow: hidden;
+  margin-top: 17px;
+  border: 1px solid #2b4050;
+  border-radius: 5px;
+  background: #142536;
+}
+.stage-scene canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.scene-caption {
+  position: absolute;
+  top: 16px;
+  left: 17px;
+  color: #a9bbc5;
+  font-size: 10px;
+}
+.scene-bpm {
+  position: absolute;
+  top: 15px;
+  right: 16px;
+  color: var(--yellow);
+  font-size: 11px;
+  font-weight: 800;
+}
+.next-beat-cue {
+  position: absolute;
+  top: 22%;
+  left: 50%;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  color: #e4f5f1;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  transform: translateX(-50%);
+}
+.next-beat-cue[hidden] {
+  display: none;
+}
+.cue-track {
+  width: 94px;
+  height: 3px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: rgba(226, 239, 238, 0.25);
+}
+.cue-track > span {
+  display: block;
+  width: 0;
+  height: 100%;
+  background: var(--mint);
+  transition: width 0.08s linear;
+}
+.judgement-banner {
+  min-height: 23px;
+  margin-top: 12px;
+  color: var(--mint);
+  font-size: 12px;
+  font-weight: 800;
+  text-align: center;
+}
+.judgement-banner[data-grade='miss'] {
+  color: var(--coral);
+}
+.judgement-banner[data-grade='good'] {
+  color: var(--yellow);
+}
+.performance-help {
+  margin: 2px 0 0;
+  color: #91a0aa;
+  font-size: 10px;
+  text-align: center;
+}
+.pause-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 13px;
+  background: rgba(13, 25, 37, 0.91);
+  text-align: center;
+}
+.pause-overlay[hidden] {
+  display: none;
+}
+.pause-overlay h2 {
+  margin: 0;
+  font-size: 22px;
+}
+.pause-overlay p {
+  margin: 0;
+  color: #bdc8d0;
+  font-size: 12px;
+}
+.show-intro {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 13px;
+  background: rgba(13, 25, 37, 0.94);
+  text-align: center;
+}
+.show-intro[hidden] {
+  display: none;
+}
+.show-intro h2 {
+  margin: 0;
+  font-size: 23px;
+}
+.show-intro p {
+  max-width: 320px;
+  margin: 0;
+  color: #c0ccd3;
+  font-size: 12px;
+  line-height: 1.7;
+}
+.visual-audio-note {
+  min-height: 18px;
+  margin-top: 4px;
+  color: #b2c0c7;
+  font-size: 10px;
+  text-align: center;
+}
+
+.management-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 18px;
+}

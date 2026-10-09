@@ -1,0 +1,259 @@
+/* 首页、日程和团队页面 */
+
+/* ---- 03 首页/日程/团队：横幅/资源/演出卡/难度/档案 ---- */
+.campaign-banner {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 22px;
+  margin-top: 26px;
+  padding: 27px 30px;
+  border-radius: var(--radius);
+  background: var(--ink);
+  color: white;
+}
+.campaign-banner h2 {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  font-size: 22px;
+}
+.campaign-banner p {
+  position: relative;
+  z-index: 1;
+  margin: 7px 0 0;
+  color: #bbc7d0;
+  font-size: 12px;
+}
+.season-number {
+  align-self: start;
+  color: var(--yellow);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+.resource-strip {
+  display: flex;
+  gap: 9px;
+  margin-top: 20px;
+}
+.resource-item {
+  min-width: 142px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 11px 13px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper);
+}
+.resource-symbol {
+  width: 27px;
+  height: 27px;
+  display: grid;
+  place-items: center;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 900;
+}
+.resource-symbol.credit {
+  background: #fff1c4;
+  color: #806116;
+}
+.resource-symbol.popularity {
+  background: #d5f6ec;
+  color: #116e62;
+}
+.resource-label {
+  display: grid;
+  gap: 1px;
+  color: var(--muted);
+  font-size: 10px;
+}
+.resource-label strong {
+  color: var(--ink);
+  font-size: 17px;
+}
+
+.home-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(240px, 0.75fr);
+  gap: 34px;
+  margin-top: 34px;
+}
+.section-topline {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 13px;
+}
+.section-topline .section-kicker {
+  margin-bottom: 0;
+}
+.schedule-list {
+  display: grid;
+  gap: 8px;
+}
+.show-card {
+  min-height: 79px;
+  display: grid;
+  grid-template-columns: 45px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 13px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper);
+}
+.show-number {
+  color: #909ba3;
+  font-size: 10px;
+  font-weight: 800;
+}
+.show-card h3 {
+  margin: 0;
+  font-size: 14px;
+}
+.show-card p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+}
+.show-state {
+  padding: 6px 8px;
+  border-radius: 4px;
+  background: #ecefeb;
+  color: #56626e;
+  font-size: 10px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+.show-card.is-current {
+  border-color: #54ccb5;
+  box-shadow: inset 3px 0 0 var(--mint);
+}
+.show-card.is-current .show-state {
+  background: #d8f5eb;
+  color: #126c60;
+}
+.show-card.is-done .show-state {
+  background: #fff1c4;
+  color: #755b17;
+}
+.team-panel {
+  align-self: start;
+  padding-top: 1px;
+}
+.team-count {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin: 14px 0 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+.team-count strong {
+  font-size: 25px;
+}
+.team-count span {
+  color: var(--muted);
+  font-size: 11px;
+}
+.role-list {
+  display: grid;
+  gap: 8px;
+}
+.role-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 39px;
+  font-size: 12px;
+}
+.role-marker {
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  background: var(--coral);
+}
+.role-row:nth-child(2) .role-marker,
+.role-row:nth-child(5) .role-marker {
+  background: var(--mint-dark);
+}
+.role-row:nth-child(3) .role-marker,
+.role-row:nth-child(4) .role-marker {
+  background: #dfad2c;
+}
+.role-note {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 10px;
+}
+.home-action-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 25px;
+}
+.primary-button,
+.secondary-button,
+.quiet-button,
+.action-button {
+  min-height: 44px;
+  border: 0;
+  border-radius: 5px;
+  padding: 0 17px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 800;
+  transition:
+    transform 0.14s ease,
+    background-color 0.14s ease,
+    opacity 0.14s ease;
+}
+.primary-button {
+  background: #fff;
+  color: #111318;
+}
+.primary-button:hover {
+  background: #f1f3f5;
+  box-shadow: 0 8px 24px rgba(255, 255, 255, 0.14);
+  transform: translateY(-1px);
+}
+.secondary-button {
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.07);
+  color: white;
+  backdrop-filter: blur(18px) saturate(1.2);
+}
+.secondary-button:hover {
+  border-color: rgba(255, 255, 255, 0.34);
+  background: rgba(255, 255, 255, 0.13);
+}
+.quiet-button {
+  min-height: 36px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+  color: #f4f7f6;
+  font-size: 11px;
+  backdrop-filter: blur(18px) saturate(1.2);
+}
+.quiet-button:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.12);
+}
+.primary-button:disabled,
+.action-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+  transform: none;
+}
+.save-notice {
+  margin-top: 12px;
+  color: #9b5944;
+  font-size: 11px;
+}

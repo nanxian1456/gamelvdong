@@ -1,0 +1,63 @@
+/* 毛玻璃表面统一层 */
+
+/* ---- 09 表面统一层：毛玻璃面板质感覆盖 ---- */
+:root {
+  --surface-panel: rgba(10, 13, 18, 0.58);
+  --surface-panel-highlight: rgba(255, 255, 255, 0.085);
+  --surface-inset: rgba(255, 255, 255, 0.065);
+}
+
+.section-panel,
+.home-grid > section,
+.team-panel,
+.management-layout > section,
+.management-side,
+.ending-grid > section,
+.ending-grid > aside,
+.ending-hero {
+  background: linear-gradient(145deg, var(--surface-panel-highlight), var(--surface-panel));
+  backdrop-filter: blur(24px) saturate(1.2);
+}
+
+.resource-item,
+.show-card,
+.team-summary-stats > div,
+.home-stats > div,
+.current-show-summary,
+.action-button,
+.ending-result-row {
+  background: var(--surface-inset);
+}
+
+.stage-scene {
+  background: var(--surface-panel);
+}
+.result-band {
+  background: linear-gradient(110deg, var(--surface-panel-highlight), var(--surface-panel));
+}
+.pause-overlay,
+.show-intro {
+  background: rgba(5, 38, 48, 0.9);
+}
+.member-token {
+  background: var(--surface-inset);
+}
+.resource-label {
+  color: rgba(255, 255, 255, 0.74);
+}
+.resource-label strong {
+  color: #fff;
+}
+.resource-item,
+.show-card,
+.action-button,
+.ending-result-row {
+  backdrop-filter: blur(12px);
+}
+
+.settings-page .section-page-header {
+  justify-content: flex-start;
+}
+.settings-page .page-heading {
+  margin-bottom: 8px;
+}

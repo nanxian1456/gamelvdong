@@ -1,0 +1,188 @@
+/* 电影感背景合成和宽高比适配 */
+
+/* ---- 08b 电影感背景合成（各页面共享） ---- */
+.app-header {
+  text-shadow: 0 1px 14px rgba(0, 0, 0, 0.25);
+}
+.app-nav a {
+  color: rgba(255, 255, 255, 0.86);
+}
+.app-nav a[aria-current='page'] {
+  border-bottom-color: #fff;
+  color: #fff;
+}
+.brand-mark {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+}
+.brand-copy small,
+.single-player {
+  color: rgba(255, 255, 255, 0.72);
+}
+.home-page {
+  min-height: calc(100svh - 124px);
+  padding-top: clamp(54px, 9vh, 94px);
+  padding-bottom: clamp(34px, 6vh, 66px);
+  row-gap: 14px;
+}
+.home-page > .eyebrow {
+  color: rgba(255, 255, 255, 0.86);
+  letter-spacing: 0.14em;
+}
+.home-page > .page-heading {
+  max-width: 12ch;
+  font-family: 'Instrument Serif', 'Noto Serif SC', 'Microsoft YaHei', serif;
+  font-size: clamp(58px, 7.4vw, 100px);
+  font-weight: 400;
+  line-height: 1.02;
+}
+.home-page > .subheading {
+  max-width: 38ch;
+  font-size: 15px;
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.88);
+}
+.campaign-banner {
+  margin-top: 3px;
+  padding: 6px 0 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+.campaign-banner h2 {
+  font-family: 'Instrument Serif', 'Noto Serif SC', 'Microsoft YaHei', serif;
+  font-size: 25px;
+  font-weight: 400;
+}
+.campaign-banner p {
+  max-width: 40ch;
+  color: rgba(255, 255, 255, 0.78);
+  line-height: 1.6;
+}
+.season-number {
+  color: rgba(255, 255, 255, 0.76);
+}
+.home-grid {
+  gap: 14px;
+}
+.home-grid > section,
+.team-panel {
+  border-color: rgba(255, 255, 255, 0.24);
+  background: linear-gradient(145deg, rgba(22, 35, 41, 0.66), rgba(24, 27, 25, 0.52));
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(28px) saturate(0.88);
+}
+.home-overview .section-heading,
+.home-team-summary .section-heading {
+  font-weight: 650;
+}
+.home-stats > div {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.075);
+}
+.current-show-summary {
+  background: rgba(255, 255, 255, 0.075);
+}
+.resource-item {
+  background: rgba(20, 32, 36, 0.48);
+  backdrop-filter: blur(20px);
+}
+.resource-strip {
+  margin-top: 12px;
+}
+.performance-page {
+  min-height: calc(100svh - 124px);
+}
+.section-page,
+.management-page,
+.ending-page {
+  min-height: calc(100svh - 124px);
+}
+.app-footer {
+  min-height: 54px;
+}
+
+@media (min-aspect-ratio: 17/10) {
+  .page-scrim {
+    background:
+      linear-gradient(180deg, rgba(4, 20, 32, 0.48), rgba(4, 20, 32, 0.25) 36%, transparent 59%),
+      linear-gradient(180deg, transparent 48%, rgba(8, 18, 23, 0.68));
+  }
+}
+
+@media (min-aspect-ratio: 19/10) {
+  .page-scrim {
+    background:
+      linear-gradient(180deg, rgba(4, 20, 32, 0.58), rgba(4, 20, 32, 0.31) 37%, transparent 62%),
+      linear-gradient(180deg, transparent 48%, rgba(8, 18, 23, 0.68));
+  }
+}
+
+@media (min-aspect-ratio: 21/10) {
+  .page-background video {
+    object-position: right 76%;
+  }
+  .page-scrim {
+    background:
+      linear-gradient(180deg, rgba(4, 20, 32, 0.56), rgba(4, 20, 32, 0.3) 38%, transparent 64%),
+      linear-gradient(180deg, transparent 48%, rgba(8, 18, 23, 0.68));
+  }
+}
+
+@media (max-aspect-ratio: 5/4) {
+  .page-background video {
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 106%;
+    object-position: 80% bottom;
+  }
+  .page-scrim {
+    background: linear-gradient(
+      180deg,
+      rgba(6, 22, 34, 0.48) 0%,
+      rgba(6, 22, 34, 0.26) 38%,
+      rgba(8, 18, 23, 0.12) 68%,
+      rgba(8, 18, 23, 0.66) 100%
+    );
+  }
+}
+
+@media (max-width: 760px) {
+  .app-frame {
+    overflow: visible;
+  }
+  .app-header {
+    border-bottom-color: rgba(255, 255, 255, 0.18);
+  }
+  .home-page {
+    min-height: 0;
+    padding-top: clamp(34px, 6vh, 60px);
+    padding-bottom: 30px;
+  }
+  .home-page > .page-heading {
+    max-width: 12ch;
+    font-size: clamp(42px, 9vw, 68px);
+  }
+  .campaign-banner {
+    padding-top: 2px;
+  }
+  .app-footer {
+    padding: 16px 18px max(18px, env(safe-area-inset-bottom));
+  }
+  .performance-page,
+  .section-page,
+  .management-page,
+  .ending-page {
+    min-height: 0;
+  }
+}
+
+@media (max-width: 420px) {
+  .home-page > .page-heading {
+    font-size: clamp(38px, 10vw, 48px);
+  }
+}

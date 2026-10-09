@@ -1,0 +1,297 @@
+/* 最终视觉覆盖与动效：必须最后加载 */
+
+/* ---- 11 演出页最终覆盖：纯黑舞台 + 触控键 ---- */
+.performance-page {
+  background: transparent;
+}
+.performance-stats {
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 0.7fr) minmax(0, 1fr);
+  align-items: end;
+}
+.performance-stats .stat-block,
+.combo-block {
+  min-width: 0;
+}
+.performance-stats .stat-block strong {
+  font-size: 20px;
+}
+.stage-scene {
+  border-color: rgba(255, 255, 255, 0.28);
+  background: #000;
+  box-shadow: none;
+  touch-action: none;
+}
+.stage-scene canvas {
+  opacity: 1;
+}
+.stage-scene:focus-visible {
+  outline: 2px solid #43a7ff;
+  outline-offset: 3px;
+}
+.lane-keypad {
+  position: absolute;
+  z-index: 2;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 2px;
+  height: 13%;
+  padding: 0 2px 2px;
+}
+.lane-key {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  place-items: center;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.38);
+  border-radius: 3px;
+  background: rgba(8, 22, 32, 0.84);
+  color: #fff;
+  cursor: pointer;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.lane-key kbd {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: 700 13px/1 sans-serif;
+}
+.lane-key:active {
+  border-color: #43a7ff;
+  background: rgba(67, 167, 255, 0.65);
+}
+.lane-key:focus-visible {
+  outline: 2px solid #43a7ff;
+  outline-offset: -3px;
+}
+
+@media (max-width: 600px) {
+  .performance-stats {
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 0.7fr) minmax(0, 1fr);
+    gap: 7px;
+  }
+  .performance-stats .stat-block span,
+  .combo-block span {
+    font-size: 8px;
+  }
+  .performance-stats .stat-block strong {
+    font-size: 16px;
+  }
+  .lane-keypad {
+    gap: 1px;
+  }
+  .lane-key kbd {
+    font-size: 11px;
+  }
+}
+
+/* ===== 演出反馈：判定弹出 + 连击/得分脉冲 ===== */
+.judgement-banner {
+  font-variant-numeric: tabular-nums;
+}
+.judgement-banner[data-grade='perfect'] {
+  color: var(--yellow);
+  text-shadow: 0 0 18px rgba(242, 198, 79, 0.55), 0 2px 20px rgba(0, 0, 0, 0.45);
+}
+.judgement-banner.pop {
+  animation: judgement-pop var(--dur-pop) ease-out;
+}
+@keyframes judgement-pop {
+  0% { transform: scale(0.72); opacity: 0; }
+  55% { transform: scale(1.12); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+#score-value.bump,
+#combo-value.bump {
+  display: inline-block;
+  animation: stat-bump 0.18s ease-out;
+}
+@keyframes stat-bump {
+  0% { transform: scale(1.28); }
+  100% { transform: scale(1); }
+}
+.lane-key {
+  transition: transform 0.08s ease, background 0.08s ease, border-color 0.08s ease;
+}
+.lane-key:active {
+  transform: scale(0.93);
+}
+
+/* ===== 页面转场 ===== */
+.app-main > section {
+  animation: page-in var(--dur-page) ease both;
+}
+@keyframes page-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* ===== 首页：主行动按钮 ===== */
+.hero-action-row {
+  margin-top: 20px;
+}
+.hero-action-row .primary-button {
+  width: 100%;
+  min-height: 58px;
+  background: #fff;
+  color: #111318;
+  font-size: 16px;
+  letter-spacing: 0.06em;
+  box-shadow: var(--shadow-glow-mint), var(--shadow-lift);
+}
+.hero-action-row .primary-button:hover {
+  box-shadow: 0 0 44px rgba(67, 216, 188, 0.5), 0 12px 32px rgba(0, 0, 0, 0.45);
+  transform: translateY(-2px);
+}
+.hero-action-top {
+  max-width: 440px;
+}
+.home-page > .hero-action-top {
+  grid-column: 1;
+  grid-row: 4;
+  align-self: start;
+  margin-top: var(--space-1);
+}
+
+/* ===== 日程：演出时间线 ===== */
+.schedule-list {
+  position: relative;
+  display: grid;
+  gap: 12px;
+  padding-left: 26px;
+}
+.schedule-list::before {
+  content: '';
+  position: absolute;
+  top: 12px;
+  bottom: 12px;
+  left: 8px;
+  width: 2px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.16);
+}
+.schedule-list .show-card {
+  position: relative;
+}
+.schedule-list .show-card::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: -24px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+}
+.schedule-list .show-card.is-done::before {
+  background: var(--yellow);
+  box-shadow: 0 0 10px rgba(242, 198, 79, 0.7);
+}
+.schedule-list .show-card.is-current::before {
+  background: var(--mint);
+  box-shadow: 0 0 12px rgba(67, 216, 188, 0.9);
+}
+.schedule-list .show-card.is-locked {
+  opacity: 0.55;
+}
+
+/* ===== 首页：赛季档案收纳为一行 ===== */
+.archive-best-line {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+.archive-best-line strong {
+  color: var(--yellow);
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ===== 结算：评价仪式感 ===== */
+.ending-hero {
+  align-items: center;
+  text-align: center;
+}
+.ending-stamp {
+  width: 132px;
+  height: 132px;
+  font-family: 'Instrument Serif', 'Noto Serif SC', serif;
+  font-size: 44px;
+  font-weight: 400;
+  animation: stamp-in 0.5s var(--ease-spring) both;
+}
+@keyframes stamp-in {
+  from { transform: rotate(-18deg) scale(1.6); opacity: 0; }
+  to { transform: rotate(-8deg) scale(1); opacity: 1; }
+}
+.ending-stamp.rank-gold {
+  border-color: var(--yellow);
+  color: var(--yellow);
+  box-shadow: var(--shadow-glow-gold), inset 0 0 24px rgba(242, 198, 79, 0.15);
+}
+.ending-stamp.rank-silver {
+  border-color: #cfd8dc;
+  color: #eceff1;
+  box-shadow: 0 0 48px rgba(207, 216, 220, 0.35), inset 0 0 24px rgba(207, 216, 220, 0.12);
+}
+.ending-stamp.rank-bronze {
+  border-color: #d29a6b;
+  color: #e8b98a;
+  box-shadow: 0 0 48px rgba(210, 154, 107, 0.35), inset 0 0 24px rgba(210, 154, 107, 0.12);
+}
+.ending-rank-name {
+  margin: 14px 0 0;
+  color: var(--yellow);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+}
+.ending-hero h1 {
+  font-family: 'Instrument Serif', 'Noto Serif SC', 'Microsoft YaHei', serif;
+  font-size: clamp(30px, 5vw, 44px);
+  font-weight: 400;
+}
+
+/* ===== 动态效果偏好：关闭新增动画 ===== */
+@media (prefers-reduced-motion: reduce) {
+  .app-main > section,
+  .judgement-banner.pop,
+  #score-value.bump,
+  #combo-value.bump,
+  .ending-stamp {
+    animation: none;
+  }
+}
+.reduce-motion .app-main > section,
+.reduce-motion .judgement-banner.pop,
+.reduce-motion #score-value.bump,
+.reduce-motion #combo-value.bump,
+.reduce-motion .ending-stamp {
+  animation: none;
+}
+
+/* ===== 霓虹夜场主题对齐：舞台底色 + 按键激活色 ===== */
+.stage-scene {
+  background: #0b0714;
+}
+.lane-key:active {
+  border-color: var(--mint);
+  background: rgba(67, 216, 188, 0.4);
+}
+.lane-key:focus-visible {
+  outline-color: var(--mint);
+}
+
+/* ===== 演出时压暗背景视频（body.performing 由 render 切换） ===== */
+.page-background {
+  transition: opacity var(--dur-page) ease;
+}
+body.performing .page-background {
+  opacity: 0.22;
+}

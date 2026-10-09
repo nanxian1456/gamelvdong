@@ -1,0 +1,78 @@
+/* 基础样式：设计 token、全局盒模型和键盘焦点 */
+
+:root {
+  color-scheme: dark;
+  font-family: 'Plus Jakarta Sans', 'Microsoft YaHei UI', 'Noto Sans CJK SC', system-ui, sans-serif;
+  color: #f4f7f6;
+  background: #030508;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  --ink: #101e2b;
+  --muted: #b1bdc5;
+  --line: rgba(226, 239, 238, 0.18);
+  --paper: rgba(19, 34, 47, 0.74);
+  --mint: #43d8bc;
+  --mint-dark: #117c70;
+  --coral: #f36e62;
+  --yellow: #f2c64f;
+  --night: #101d2b;
+  --night-soft: #192b3b;
+  --radius: 6px;
+
+  /* 设计 token：圆角尺度（新增代码优先用这组，旧值保持不动） */
+  --radius-sm: 3px;
+  --radius-md: 5px;
+  --radius-lg: 8px;
+  --radius-pill: 999px;
+
+  /* 设计 token：字阶 */
+  --text-caption: 10px;
+  --text-body: 12px;
+  --text-title: 14px;
+  --text-heading: 18px;
+  --text-display: 22px;
+
+  /* 设计 token：间距 */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 20px;
+  --space-5: 32px;
+
+  /* 设计 token：阴影 */
+  --shadow-lift: 0 10px 28px rgba(0, 0, 0, 0.4);
+  --shadow-glow-mint: 0 0 32px rgba(67, 216, 188, 0.35);
+  --shadow-glow-gold: 0 0 48px rgba(242, 198, 79, 0.4);
+
+  /* 设计 token：动效（时长 + 缓动） */
+  --dur-instant: 80ms;
+  --dur-fast: 140ms;
+  --dur-page: 240ms;
+  --dur-pop: 320ms;
+  --ease-out: cubic-bezier(0.2, 0.9, 0.3, 1);
+  --ease-spring: cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background: #030508;
+}
+
+button,
+a {
+  font: inherit;
+}
+button {
+  color: inherit;
+}
+button:focus-visible,
+a:focus-visible {
+  outline: 3px solid rgba(255, 255, 255, 0.92);
+  outline-offset: 3px;
+}

@@ -1,0 +1,122 @@
+/* 设置页面 */
+
+/* ---- 10 设置页 ---- */
+.settings-panel {
+  max-width: 850px;
+  margin-top: clamp(24px, 4vh, 38px);
+  padding: 4px clamp(18px, 3vw, 34px);
+}
+.setting-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(180px, min(38vw, 340px));
+  align-items: center;
+  gap: 24px;
+  min-height: 96px;
+  padding: 18px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+}
+.setting-row:last-of-type {
+  border-bottom: 0;
+}
+.setting-copy {
+  min-width: 0;
+}
+.setting-title {
+  display: inline-block;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 750;
+}
+.setting-copy p {
+  margin: 5px 0 0;
+  color: #c1cccf;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.setting-switch {
+  appearance: none;
+  justify-self: end;
+  position: relative;
+  width: 48px;
+  height: 28px;
+  margin: 0;
+  border: 1px solid rgba(255, 255, 255, 0.38);
+  border-radius: 20px;
+  background: rgba(4, 24, 32, 0.7);
+  cursor: pointer;
+  transition: background-color 140ms ease, border-color 140ms ease;
+}
+.setting-switch::before {
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #e4ece9;
+  transition: transform 140ms ease;
+}
+.setting-switch:checked {
+  border-color: #43d8bc;
+  background: #218e7d;
+}
+.setting-switch:checked::before {
+  transform: translateX(20px);
+  background: #fff;
+}
+.setting-switch:focus-visible,
+.volume-control input:focus-visible {
+  outline: 3px solid #f2c64f;
+  outline-offset: 3px;
+}
+.volume-control {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 48px;
+  align-items: center;
+  gap: 14px;
+}
+.volume-control input {
+  width: 100%;
+  min-width: 0;
+  accent-color: #43d8bc;
+}
+.volume-control output {
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+  font-size: 13px;
+  text-align: right;
+}
+.settings-save-note {
+  margin: 0;
+  padding: 12px 0 8px;
+  color: #f2c64f;
+  font-size: 12px;
+}
+.settings-save-note[hidden] {
+  display: none;
+}
+html.reduce-motion *,
+html.reduce-motion *::before,
+html.reduce-motion *::after {
+  scroll-behavior: auto !important;
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}
+
+@media (max-width: 600px) {
+  .settings-panel {
+    padding-right: 16px;
+    padding-left: 16px;
+  }
+  .setting-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 16px;
+    min-height: 84px;
+  }
+  .volume-setting {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+}

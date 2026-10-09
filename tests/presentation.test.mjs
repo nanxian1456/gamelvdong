@@ -10,10 +10,21 @@ function lastCssRule(source, className) {
   return [...source.matchAll(new RegExp('\\.' + className + '\\s*\\{([^}]*)\\}', 'g'))].at(-1)?.[1] ?? '';
 }
 
+async function readProjectStyles() {
+  const entryUrl = new URL('styles.css', projectUrl);
+  const entry = await readFile(entryUrl, 'utf8');
+  const imports = [...entry.matchAll(/@import\s+(?:url\()?['"]([^'"]+)['"]\)?\s*;/g)];
+  const modules = await Promise.all(
+    imports.map((match) => readFile(new URL(match[1], entryUrl), 'utf8')),
+  );
+
+  return [entry, ...modules].join('\n');
+}
+
 test('uses the supplied cinematic video as a shared page backdrop', async () => {
   const [html, css] = await Promise.all([
     readFile(new URL('index.html', projectUrl), 'utf8'),
-    readFile(new URL('styles.css', projectUrl), 'utf8'),
+    readProjectStyles(),
   ]);
 
   assert.match(html, /class="page-background"[\s\S]*?<video[\s\S]*?autoplay[\s\S]*?muted[\s\S]*?loop[\s\S]*?playsinline/);
@@ -24,7 +35,7 @@ test('uses the supplied cinematic video as a shared page backdrop', async () => 
 });
 
 test('keeps the game content above the backdrop and removes the crossed campaign flourish', async () => {
-  const css = await readFile(new URL('styles.css', projectUrl), 'utf8');
+  const css = await readProjectStyles();
 
   assert.match(css, /\.app-main\s*\{[^}]*position:\s*relative/s);
   assert.match(css, /\.app-footer\s*\{[^}]*backdrop-filter:\s*blur/s);
@@ -32,7 +43,7 @@ test('keeps the game content above the backdrop and removes the crossed campaign
 });
 
 test('uses dark glass surfaces with white primary and frosted secondary actions', async () => {
-  const css = await readFile(new URL('styles.css', projectUrl), 'utf8');
+  const css = await readProjectStyles();
 
   const panelMatch = css.match(/--surface-panel:\s*rgba\((\d+),\s*(\d+),\s*(\d+),\s*([\d.]+)\)/);
   const panelColor = panelMatch?.slice(1, 4).map(Number) ?? [];
@@ -67,7 +78,7 @@ test('shows the remaining season credits on the finale screen', () => {
 });
 
 test('presents the eight matching lane keys, touch pads, live accuracy, and chart progress', async () => {
-  const css = await readFile(new URL('styles.css', projectUrl), 'utf8');
+  const css = await readProjectStyles();
   const html = renderPerformanceView({
     campaign: { showIndex: 0 },
     show: SHOWS[0],
@@ -97,7 +108,7 @@ test('presents the eight matching lane keys, touch pads, live accuracy, and char
 });
 
 test('keeps a black eight-lane playfield', async () => {
-  const css = await readFile(new URL('styles.css', projectUrl), 'utf8');
+  const css = await readProjectStyles();
   assert.match(css, /\.stage-scene\s*\{[^}]*background:\s*#000(?:000)?\s*;/s);
   assert.match(css, /\.lane-keypad/);
 });

@@ -1,0 +1,164 @@
+/* 经营页面 */
+
+/* ---- 05 经营页：结算条/行动列表/阵容侧栏 ---- */
+.management-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(260px, 0.8fr);
+  gap: 28px;
+  margin-top: 29px;
+}
+.result-band {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 17px 19px;
+  border-left: 4px solid var(--mint);
+  background: var(--ink);
+  color: white;
+}
+.result-band h2 {
+  margin: 0;
+  font-size: 17px;
+}
+.result-band p {
+  margin: 5px 0 0;
+  color: #bac6ce;
+  font-size: 11px;
+}
+.result-rank {
+  color: var(--yellow);
+  font-size: 21px;
+  font-weight: 900;
+}
+.reward-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 11px;
+}
+.reward-chip {
+  padding: 7px 9px;
+  border-radius: 4px;
+  background: #e3f4ec;
+  color: #245c51;
+  font-size: 10px;
+  font-weight: 750;
+}
+.reward-chip.credit {
+  background: #fff1c4;
+  color: #755b17;
+}
+.actions-title {
+  margin: 27px 0 11px;
+  font-size: 15px;
+}
+.action-list {
+  display: grid;
+  gap: 8px;
+}
+.action-button {
+  width: 100%;
+  min-height: 65px;
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  text-align: left;
+}
+.action-button:hover:not(:disabled) {
+  border-color: var(--mint-dark);
+  background: #f4fcf8;
+}
+.action-index {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 4px;
+  background: #e4f5ee;
+  color: #126c60;
+  font-size: 11px;
+  font-weight: 900;
+}
+.action-copy {
+  display: grid;
+  gap: 4px;
+}
+.action-copy strong {
+  font-size: 12px;
+}
+.action-copy small {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.45;
+}
+.action-cost {
+  color: #58636d;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.action-cost.free {
+  color: var(--mint-dark);
+}
+.management-side {
+  align-self: start;
+  padding-top: 2px;
+}
+.member-roster {
+  display: grid;
+  gap: 8px;
+  margin-top: 13px;
+}
+.member-row {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-height: 50px;
+  border-bottom: 1px solid var(--line);
+}
+.member-token {
+  width: 31px;
+  height: 31px;
+  display: grid;
+  place-items: center;
+  border-radius: 4px;
+  background: var(--ink);
+  color: var(--mint);
+  font-size: 12px;
+  font-weight: 900;
+}
+.member-row:nth-child(3n + 2) .member-token {
+  color: var(--yellow);
+}
+.member-row:nth-child(3n) .member-token {
+  color: #ff9185;
+}
+.member-name {
+  font-size: 12px;
+  font-weight: 750;
+}
+.member-role {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 10px;
+}
+.management-resources {
+  margin-top: 25px;
+  padding-top: 15px;
+  border-top: 1px solid var(--line);
+}
+.notice-text {
+  min-height: 18px;
+  margin: 12px 0 0;
+  color: #9b5944;
+  font-size: 11px;
+}
+
+.ending-page {
+  min-height: 75vh;
+}
