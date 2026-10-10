@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import * as storageApi from '../src/storage.js';
 import { applyAction, newCampaign, settleShow, startCampaign } from '../src/progression.js';
 import {
   clearCampaign,
@@ -52,6 +53,34 @@ test('recovers from a malformed local season archive without throwing', () => {
   const storage = new MemoryStorage();
   storage.setItem(KEY, '{bad json');
   assert.deepEqual(loadSeasonArchive(storage), []);
+});
+
+test('updates a retried finale in place rather than duplicating the season archive', () => {
+  const storage = new MemoryStorage();
+  const campaign = completedCampaign();
+  recordCompletedSeason(campaign, storage, 1234);
+  const retried = { ...campaign, credits: 100, popularity: 110 };
+  assert.equal(recordCompletedSeason(retried, storage, 5678), true);
+  const records = loadSeasonArchive(storage);
+  assert.equal(records.length, 1);
+  assert.equal(records[0].credits, 100);
+  assert.equal(records[0].popularity, 110);
+  assert.equal(records[0].completedAt, 1234);
+  assert.equal(recordCompletedSeason(retried, storage, 9999), false);
+});
+
+test('failed archive update retains the revised finale and prevents a destructive season restart', () => {
+  const storage = new MemoryStorage();
+  const original = completedCampaign();
+  recordCompletedSeason(original, storage, 1234);
+  const revised = { ...original, credits: 100, popularity: 110 };
+  saveCampaign(revised, storage);
+  storage.setItem = () => { throw new Error('quota exhausted'); };
+  assert.equal(recordCompletedSeason(revised, storage, 5678), false);
+  assert.equal(restartCompletedSeason(revised, storage), false);
+  assert.equal(loadCampaign(storage).campaign.credits, 100);
+  assert.equal(storageApi.isCompletedSeasonArchived(revised, storage), false);
+  assert.equal(storageApi.isCompletedSeasonArchived(original, storage), true);
 });
 
 test('keeps only the newest stored record for each season ID', () => {

@@ -48,9 +48,9 @@ function setup() {
   return { surface, windowTarget, events, controls };
 }
 
-test('A S D F H J K L emit one key edge per press and release', () => {
+test('D F J K emit one key edge per press and release', () => {
   const { windowTarget, events } = setup();
-  for (const key of ['a', 's', 'd', 'f', 'h', 'j', 'k', 'l']) {
+  for (const key of ['d', 'f', 'j', 'k']) {
     windowTarget.dispatch('keydown', { code: `Key${key.toUpperCase()}`, key });
     windowTarget.dispatch('keydown', { code: `Key${key.toUpperCase()}`, key, repeat: true });
     windowTarget.dispatch('keyup', { code: `Key${key.toUpperCase()}`, key });
@@ -58,10 +58,19 @@ test('A S D F H J K L emit one key edge per press and release', () => {
   windowTarget.dispatch('keydown', { code: 'Space', key: ' ' });
   windowTarget.dispatch('keyup', { code: 'Space', key: ' ' });
 
-  assert.deepEqual(events, ['a', 's', 'd', 'f', 'h', 'j', 'k', 'l'].flatMap(key => [
+  assert.deepEqual(events, ['d', 'f', 'j', 'k'].flatMap(key => [
     { type: 'key-down', key },
     { type: 'key-up', key },
   ]));
+});
+
+test('removed keyboard keys do not emit rhythm events', () => {
+  const { windowTarget, events } = setup();
+  for (const key of ['a', 's', 'h', 'l']) {
+    windowTarget.dispatch('keydown', { code: `Key${key.toUpperCase()}`, key });
+    windowTarget.dispatch('keyup', { code: `Key${key.toUpperCase()}`, key });
+  }
+  assert.deepEqual(events, []);
 });
 
 test('pointer coordinates are normalized and pointer capture is released', () => {
@@ -80,14 +89,14 @@ test('pointer coordinates are normalized and pointer capture is released', () =>
 test('touching a lane pad emits its fixed lane instead of relying on pointer position', () => {
   const { surface, events } = setup();
   const laneButton = new FakeTarget();
-  laneButton.dataset = { laneKey: '6' };
+  laneButton.dataset = { laneKey: '2' };
   laneButton.tagName = 'BUTTON';
   laneButton.role = 'button';
   laneButton.parent = surface;
   surface.dispatch('pointerdown', { button: 0, pointerId: 9, clientX: 102, clientY: 55, pointerType: 'touch', timeStamp: 1, target: laneButton });
   surface.dispatch('pointerup', { pointerId: 9, clientX: 102, clientY: 55, pointerType: 'touch', timeStamp: 2, target: surface });
 
-  assert.equal(events[0].lane, 6);
+  assert.equal(events[0].lane, 2);
   assert.equal(events[0].pointerId, 9);
 });
 
@@ -128,7 +137,7 @@ test('pointer cancel and window blur reset held state', () => {
   surface.dispatch('pointercancel', { pointerId: 1, clientX: 100, clientY: 50, pointerType: 'touch', timeStamp: 2 });
   surface.dispatch('pointermove', { pointerId: 1, clientX: 200, clientY: 50, pointerType: 'touch', timeStamp: 3 });
   assert.equal(surface.captured.size, 0);
-  windowTarget.dispatch('keydown', { code: 'KeyA' });
+  windowTarget.dispatch('keydown', { code: 'KeyF' });
   surface.dispatch('pointerdown', { button: 0, pointerId: 2, clientX: 200, clientY: 50, pointerType: 'touch', timeStamp: 4 });
   windowTarget.dispatch('blur');
   surface.dispatch('pointermove', { pointerId: 2, clientX: 300, clientY: 50, pointerType: 'touch', timeStamp: 5 });
@@ -137,7 +146,7 @@ test('pointer cancel and window blur reset held state', () => {
     { type: 'key-down', key: 'd' },
     { type: 'pointer-down', x: 0, y: 0, pointerType: 'touch', pointerId: 1, timeStamp: 1 },
     { type: 'pointer-up', x: 0, y: 0, pointerType: 'touch', pointerId: 1, timeStamp: 2 },
-    { type: 'key-down', key: 'a' },
+    { type: 'key-down', key: 'f' },
     { type: 'pointer-down', x: 0.25, y: 0, pointerType: 'touch', pointerId: 2, timeStamp: 4 },
     { type: 'reset' },
   ]);
@@ -155,7 +164,7 @@ test('inputs from unrelated controls are ignored', () => {
   const { surface, windowTarget, events } = setup();
   const input = new FakeTarget();
   input.tagName = 'INPUT';
-  windowTarget.dispatch('keydown', { code: 'KeyA', target: input });
+  windowTarget.dispatch('keydown', { code: 'KeyF', target: input });
   windowTarget.dispatch('keydown', { code: 'Space', target: input });
   assert.deepEqual(events, []);
 });
@@ -164,11 +173,11 @@ test('a held key is released if focus moves to an unrelated input before keyup',
   const { windowTarget, events } = setup();
   const input = new FakeTarget();
   input.tagName = 'INPUT';
-  windowTarget.dispatch('keydown', { code: 'KeyA' });
-  windowTarget.dispatch('keyup', { code: 'KeyA', target: input });
+  windowTarget.dispatch('keydown', { code: 'KeyF' });
+  windowTarget.dispatch('keyup', { code: 'KeyF', target: input });
   assert.deepEqual(events, [
-    { type: 'key-down', key: 'a' },
-    { type: 'key-up', key: 'a' },
+    { type: 'key-down', key: 'f' },
+    { type: 'key-up', key: 'f' },
   ]);
 });
 
@@ -177,7 +186,7 @@ test('reset emits reset and disposal removes listeners then resets once', () => 
   windowTarget.dispatch('keydown', { code: 'KeyD' });
   surface.dispatch('pointerdown', { button: 0, pointerId: 3, clientX: 200, clientY: 100, pointerType: 'mouse', timeStamp: 1 });
   controls.reset();
-  windowTarget.dispatch('keydown', { code: 'KeyA' });
+  windowTarget.dispatch('keydown', { code: 'KeyF' });
   surface.dispatch('pointerdown', { button: 0, pointerId: 4, clientX: 200, clientY: 100, pointerType: 'mouse', timeStamp: 2 });
   controls.dispose();
   surface.dispatch('pointermove', { pointerId: 4, clientX: 300, clientY: 100, pointerType: 'mouse', timeStamp: 3 });
@@ -186,7 +195,7 @@ test('reset emits reset and disposal removes listeners then resets once', () => 
     { type: 'key-down', key: 'd' },
     { type: 'pointer-down', x: 0.25, y: 0.25, pointerType: 'mouse', pointerId: 3, timeStamp: 1 },
     { type: 'reset' },
-    { type: 'key-down', key: 'a' },
+    { type: 'key-down', key: 'f' },
     { type: 'pointer-down', x: 0.25, y: 0.25, pointerType: 'mouse', pointerId: 4, timeStamp: 2 },
     { type: 'reset' },
   ]);

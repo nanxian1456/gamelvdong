@@ -192,3 +192,25 @@ test('starting twice releases the previous audio context', async () => {
   assert.equal(engine.isAvailable(), true);
   assert.equal(engine.getPlayhead(), -3000);
 });
+
+test('schedules arranged music independently from chart cues and restores sustained tones after pause', async () => {
+  const context = new FakeAudioContext();
+  const engine = createAudioEngine({ contextFactory: () => context });
+  await engine.start([500], [
+    { atMs: 0, durationMs: 1000, frequency: 440, volume: 0.04, type: 'triangle' },
+    { atMs: 500, durationMs: 100, frequency: 110, volume: 0.03, type: 'sine' },
+  ]);
+  context.currentTime = 2.95;
+  engine.update();
+  assert.equal(context.oscillatorStarts.at(-1), 3, 'intro starts at music zero');
+  context.currentTime = 3.4;
+  engine.update();
+  assert.equal(context.oscillatorStarts.length, 5, 'one music tone per event, not legacy cue tones');
+  await engine.pause();
+  await engine.resume();
+  engine.update();
+  assert.equal(context.oscillatorStarts.length, 7, 'restores interrupted sustain and upcoming bass');
+  engine.setMuted(true);
+  engine.update();
+  assert.equal(context.oscillatorStarts.length, 7);
+});

@@ -1,5 +1,5 @@
 import { createSeasonId, getEnding, newCampaign } from './progression.js';
-import { DIFFICULTIES, getDifficulty } from './content.js';
+import { DIFFICULTIES, TRAINING_BONUS, getDifficulty } from './content.js';
 
 const SAVE_KEY = 'rhythm-campus-band-save';
 const SAVE_VERSION = 1;
@@ -91,8 +91,11 @@ export function loadCampaign(storage) {
         difficulty: record.campaign.difficulty ?? 'standard',
       };
       if (campaign.phase !== 'home' && !campaign.seasonId) campaign.seasonId = createSeasonId();
+      const legacyTraining = campaign.phase === 'show'
+        && campaign.actionHistory.at(-1) === 'train' && campaign.nextShowCreditBonus === 15;
+      if (legacyTraining) campaign.nextShowCreditBonus = TRAINING_BONUS;
       const needsMigration = record.campaign.difficulty === undefined
-        || (campaign.phase !== 'home' && record.campaign.seasonId === undefined);
+        || (campaign.phase !== 'home' && record.campaign.seasonId === undefined) || legacyTraining;
       if (needsMigration) {
         try {
           target.setItem(SAVE_KEY, JSON.stringify({ version: SAVE_VERSION, campaign }));
@@ -147,6 +150,16 @@ export function loadSeasonArchive(storage) {
   }
 }
 
+export function isCompletedSeasonArchived(campaign, storage) {
+  if (campaign?.phase !== 'ending') return false;
+  const record = loadSeasonArchive(storage).find(({ id }) => id === campaign.seasonId);
+  if (!record) return false;
+  const ending = getEnding(campaign);
+  return record.difficulty === getDifficulty(campaign.difficulty).id
+    && record.rank === ending.rank && record.score === ending.score
+    && record.popularity === campaign.popularity && record.credits === campaign.credits;
+}
+
 export function recordCompletedSeason(campaign, storage, completedAt = Date.now()) {
   try {
     const target = resolveStorage(storage);
@@ -157,8 +170,9 @@ export function recordCompletedSeason(campaign, storage, completedAt = Date.now(
       || campaign.showResults?.length !== 3
     ) return false;
     const records = loadSeasonArchive(target);
-    if (records.some(({ id }) => id === campaign.seasonId)) return false;
+    const previous = records.find(({ id }) => id === campaign.seasonId);
     const ending = getEnding(campaign);
+    if (isCompletedSeasonArchived(campaign, target)) return false;
     const next = [
       {
         id: campaign.seasonId,
@@ -167,9 +181,9 @@ export function recordCompletedSeason(campaign, storage, completedAt = Date.now(
         score: ending.score,
         popularity: campaign.popularity,
         credits: campaign.credits,
-        completedAt,
+        completedAt: previous?.completedAt ?? completedAt,
       },
-      ...records,
+      ...records.filter(({ id }) => id !== campaign.seasonId),
     ].slice(0, ARCHIVE_LIMIT);
     target.setItem(ARCHIVE_KEY, JSON.stringify({ version: ARCHIVE_VERSION, records: next }));
     return true;
@@ -199,7 +213,7 @@ export function restartCompletedSeason(campaign, storage) {
       || campaign.showResults?.length !== 3
     ) return false;
 
-    const isArchived = () => loadSeasonArchive(target).some(({ id }) => id === campaign.seasonId);
+    const isArchived = () => isCompletedSeasonArchived(campaign, target);
     if (!isArchived()) recordCompletedSeason(campaign, target);
     if (!isArchived()) return false;
     return clearCampaign(target);

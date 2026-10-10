@@ -23,6 +23,8 @@ export function createAudioEngine({
   let firedCursor = 0;
   let scheduledBeats = new Set();
   let sources = [];
+  let music = null;
+  let scheduledMusic = new Set();
 
   function applyVolume() {
     if (!outputGain || !context) return;
@@ -103,6 +105,18 @@ export function createAudioEngine({
     if (!running || paused) return;
     const playhead = getPlayhead();
 
+    if (music && available && !muted) {
+      for (const [index, event] of music.entries()) {
+        if (scheduledMusic.has(index) || event.atMs + event.durationMs <= playhead) continue;
+        if (event.atMs - playhead > LOOKAHEAD_SECONDS * 1000) break;
+        const remainingMs = event.durationMs - Math.max(0, playhead - event.atMs);
+        const when = Math.max(context.currentTime + 0.005,
+          audioOrigin + COUNT_IN_MS / 1000 + event.atMs / 1000);
+        playTone(event.frequency, when, remainingMs / 1000, event.volume, event.type);
+        scheduledMusic.add(index);
+      }
+    }
+
     while (firedCursor < beatsMs.length && firedBeats[firedCursor]) firedCursor += 1;
     for (let index = firedCursor; index < beatsMs.length; index += 1) {
       const beatMs = beatsMs[index];
@@ -114,6 +128,7 @@ export function createAudioEngine({
       const timeUntilBeat = (beatMs - playhead) / 1000;
       if (
         available
+        && !music
         && !muted
         && !firedBeats[index]
         && !scheduledBeats.has(index)
@@ -129,7 +144,7 @@ export function createAudioEngine({
     }
   }
 
-  async function start(chartBeatsMs) {
+  async function start(chartBeatsMs, arrangement = null) {
     if (context) {
       try {
         await context.close();
@@ -144,6 +159,8 @@ export function createAudioEngine({
     firedBeats = beatsMs.map(() => false);
     firedCursor = 0;
     scheduledBeats = new Set();
+    music = Array.isArray(arrangement) ? [...arrangement].sort((a, b) => a.atMs - b.atMs) : null;
+    scheduledMusic = new Set();
     running = true;
     paused = false;
     pausedElapsed = 0;
@@ -172,6 +189,7 @@ export function createAudioEngine({
     paused = true;
     stopSources();
     scheduledBeats = new Set();
+    scheduledMusic = new Set();
     if (available && context) {
       try {
         await context.suspend();
@@ -205,6 +223,7 @@ export function createAudioEngine({
     if (muted) {
       stopSources();
       scheduledBeats = new Set();
+      scheduledMusic = new Set();
     } else {
       for (const index of [...scheduledBeats]) {
         if (!firedBeats[index]) scheduledBeats.delete(index);

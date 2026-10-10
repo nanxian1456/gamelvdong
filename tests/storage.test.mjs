@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { newCampaign, settleShow, startCampaign } from '../src/progression.js';
+import { applyAction, newCampaign, settleShow, startCampaign } from '../src/progression.js';
 import { clearCampaign, loadCampaign, saveCampaign } from '../src/storage.js';
 
 const KEY = 'rhythm-campus-band-save';
@@ -20,6 +20,18 @@ class MemoryStorage {
     this.values.delete(key);
   }
 }
+
+test('upgrades the pending bonus of a legacy paid training without charging again', () => {
+  const storage = new MemoryStorage();
+  let campaign = settleShow(startCampaign(newCampaign()), { score: 0, accuracy: 0, rank: 'C', comboMax: 0 });
+  campaign = applyAction({ ...campaign, credits: 100 }, 'train').campaign;
+  campaign.nextShowCreditBonus = 15;
+  saveCampaign(campaign, storage);
+  const loaded = loadCampaign(storage).campaign;
+  assert.equal(loaded.credits, 70);
+  assert.equal(loaded.nextShowCreditBonus, 45);
+  assert.equal(loadCampaign(storage).campaign.nextShowCreditBonus, 45);
+});
 
 test('round-trips campaign state through a versioned local record', () => {
   const storage = new MemoryStorage();

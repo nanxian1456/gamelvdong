@@ -3,7 +3,7 @@ import { LANE_KEYS } from './lane-input.js';
 const CONTROL_SELECTOR = 'button, input, select, textarea, [contenteditable="true"], [role="button"]';
 
 function rhythmKey(event) {
-  const keyFromCode = /^Key([ASDFHJKL])$/.exec(event.code ?? '')?.[1]?.toLowerCase();
+  const keyFromCode = /^Key([A-Z])$/.exec(event.code ?? '')?.[1]?.toLowerCase();
   const keyFromLabel = event.key?.toLowerCase();
   const key = keyFromCode ?? keyFromLabel;
   return LANE_KEYS.includes(key) ? key : null;

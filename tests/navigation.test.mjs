@@ -1,5 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+
+test('refreshing a tutorial route keeps rehearsal separate from the saved season phase', () => {
+  for (const phase of ['home', 'show', 'management', 'ending']) {
+    assert.equal(getInitialView(phase, '#tutorial'), 'tutorial');
+  }
+});
 import { getInitialView, getNavigationItems } from '../src/navigation.js';
 
 test('keeps home sections available and adds the current campaign destination', () => {

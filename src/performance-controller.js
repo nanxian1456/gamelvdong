@@ -3,7 +3,7 @@ import {
   advanceRhythmRuntime,
   createRhythmRuntime,
   getRhythmSummary,
-  getShowBeatCue,
+  getNextBeatCue,
   processRhythmInput,
 } from './rhythm.js';
 import { drawStage, getStageGeometry, resizeStageCanvas } from './stage.js';
@@ -23,6 +23,7 @@ export function createPerformanceController({
   createEngine,
   onComplete,
   onPreferenceChange,
+  onExit,
 }) {
   let entry = null;
   let preferences = { ...DEFAULT_PREFERENCES };
@@ -41,6 +42,8 @@ export function createPerformanceController({
   let stageGeometry = null;
   let stageContext = null;
   let finishPromise = null;
+  let retryPromise = null;
+  let lifecycleVersion = 0;
 
   const reducedMotionEnabled = () => preferences.reduceMotion
     || windowTarget.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true;
@@ -91,6 +94,7 @@ export function createPerformanceController({
       cueElement: root.querySelector('#next-beat-cue'),
       cueLabel: root.querySelector('#next-beat-label'),
       cueProgress: root.querySelector('#cue-progress'),
+      section: root.querySelector('#music-section'),
       lastScore: '',
       lastCombo: '',
       lastAccuracy: '',
@@ -171,6 +175,10 @@ export function createPerformanceController({
       hud.lastAccuracy = accuracyText;
     }
     const playhead = Number.isFinite(playheadMs) ? playheadMs : session.engine.getPlayhead();
+    const section = entry.show.sections?.findLast(part => playhead >= part.startMs);
+    if (hud.section) hud.section.textContent = playhead < 0 ? '准备' : section?.name ?? '演出中';
+    const tutorialHint = root.querySelector('#tutorial-hint');
+    if (tutorialHint && section?.instruction) tutorialHint.textContent = section.instruction;
     const countdownText = playhead < 0 ? `倒数 ${session.engine.getCountdown()}` : '';
     if (hud.countdown && hud.lastCountdown !== countdownText) {
       hud.countdown.textContent = countdownText;
@@ -182,11 +190,11 @@ export function createPerformanceController({
       hud.judged = rhythm.noteStates.map(state => state.status === 'resolved');
       hud.lastJudgedCount = completed;
     }
-    const cue = getShowBeatCue(
-      entry.campaign.showIndex,
+    const cue = getNextBeatCue(
+      entry.show.beatsMs,
       hud.judged ?? [],
       playhead,
-      activeDifficulty(),
+      activeDifficulty().goodWindowMs,
     );
     if (hud.cueElement && hud.cueLabel && hud.cueProgress) {
       hud.cueElement.hidden = !cue;
@@ -280,7 +288,7 @@ export function createPerformanceController({
         missFlash: Math.max(0, 1 - (now - session.lastMissAt) / 320),
       });
     }
-    if (session.rhythm.finished) {
+    if (session.rhythm.finished && playheadMs >= (entry.show.durationMs ?? 0)) {
       void finishSession().catch(error => windowTarget.reportError?.(error));
       return;
     }
@@ -304,6 +312,7 @@ export function createPerformanceController({
       preferences,
       saveUnavailable: entry.saveUnavailable,
       restoredActiveShow: entry.restoredActiveShow,
+      tutorial: entry.tutorial,
     });
 
     const muteButton = root.querySelector('#mute-toggle');
@@ -316,9 +325,13 @@ export function createPerformanceController({
     });
 
     const startButton = root.querySelector('#start-performance');
+    listen(root.querySelector('#exit-tutorial'), 'click', () => { void onExit?.(); });
     listen(startButton, 'click', () => { void startSession(); });
     listen(root.querySelector('#pause-toggle'), 'click', () => { void pauseSession(); });
     listen(root.querySelector('#resume-performance'), 'click', () => { void resumeSession(); });
+    listen(root.querySelector('#retry-performance'), 'click', () => {
+      void retrySession().catch(error => windowTarget.reportError?.(error));
+    });
 
     const surface = root.querySelector('#stage-scene');
     if (surface) {
@@ -391,7 +404,7 @@ export function createPerformanceController({
       ripples = [];
       engine.setMuted(preferences.muted);
       engine.setVolume(preferences.volume / 100);
-      await engine.start(entry.show.beatsMs);
+      await engine.start(entry.show.beatsMs, entry.show.music);
       if (!entered || session?.paused) return;
       renderPage();
       root.querySelector('#show-intro')?.setAttribute('hidden', '');
@@ -452,7 +465,24 @@ export function createPerformanceController({
     scheduleFrame();
   };
 
+  const retrySession = async () => {
+    if (retryPromise) return retryPromise;
+    if (!entered || !session?.paused || session.finishing) return;
+    const options = { ...entry, preferences: { ...preferences }, autoStart: true };
+    retryPromise = (async () => {
+      const releasing = dispose();
+      const version = lifecycleVersion;
+      await releasing;
+      if (version !== lifecycleVersion) return;
+      await enter(options);
+    })();
+    try { await retryPromise; } finally { retryPromise = null; }
+  };
+
   async function enter(options) {
+    const version = ++lifecycleVersion;
+    if (disposePromise) await disposePromise;
+    if (version !== lifecycleVersion) return;
     entered = true;
     entry = {
       ...options,
@@ -466,6 +496,7 @@ export function createPerformanceController({
   }
 
   async function leave() {
+    lifecycleVersion += 1;
     entered = false;
     const pendingPause = session && !session.paused
       ? pauseSession({ updatePage: false })

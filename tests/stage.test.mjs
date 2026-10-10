@@ -32,18 +32,18 @@ function drawCalls(width, height, show, rhythmRuntime, playheadMs, difficulty = 
   return scene;
 }
 
-test('uses eight equal lanes and a fixed horizontal judgment line', () => {
+test('uses four equal lanes and a fixed horizontal judgment line', () => {
   assert.equal(typeof stage.getStageGeometry, 'function');
 
   for (const [width, height] of [[1600, 200], [180, 600]]) {
     const geometry = stage.getStageGeometry(makeStage(width, height).app);
     const { lineStart, lineEnd } = geometry;
 
-    assert.equal(geometry.laneCount, 8);
+    assert.equal(geometry.laneCount, 4);
     assert.deepEqual([geometry.width, geometry.height], [width, height]);
     assert.equal(lineStart.y, lineEnd.y);
     assert.ok(Math.abs(lineStart.y - height * 0.84) < 0.01);
-    assert.equal(geometry.laneWidth, width / 8);
+    assert.equal(geometry.laneWidth, width / 4);
     for (const point of [lineStart, lineEnd]) {
       assert.ok(point.x >= 0 && point.x <= width);
       assert.ok(point.y >= 0 && point.y <= height);
@@ -54,7 +54,7 @@ test('uses eight equal lanes and a fixed horizontal judgment line', () => {
 test('maps normalized chart positions to stable lane centers', () => {
   const geometry = stage.getStageGeometry(makeStage().app);
 
-  for (const [chartX, lane] of [[0, 0], [0.25, 2], [0.5, 4], [0.999, 7], [1, 7]]) {
+  for (const [chartX, lane] of [[0, 0], [0.25, 1], [0.5, 2], [0.999, 3], [1, 3]]) {
     const point = geometryTools.pointOnLine(geometry, chartX);
     assert.equal(point.lane, lane);
     assert.equal(point.x, (lane + 0.5) * geometry.laneWidth);
@@ -67,7 +67,7 @@ test('draws piano-block colors, lane separators, Tap blocks, and active lane fee
   const tap = { id: 'tap', type: 'tap', hitMs: 1500, x: 0.25 };
   const scene = drawCalls(320, 200, { chart: [hold, tap] }, {
     noteStates: [{ status: 'pending' }, { status: 'pending' }],
-    activeInputs: new Map([['key:d', { lane: 2, noteIndex: null }]]),
+    activeInputs: new Map([['key:j', { lane: 2, noteIndex: null }]]),
   }, 1500);
 
   assert.ok(scene.calls.some(({ name, args, fillStyle }) => name === 'fillRect'
@@ -75,7 +75,7 @@ test('draws piano-block colors, lane separators, Tap blocks, and active lane fee
   assert.ok(scene.calls.some(({ name, strokeStyle }) => name === 'stroke' && strokeStyle === '#f5f3ff'));
   assert.ok(scene.calls.some(({ name, strokeStyle }) => name === 'stroke' && strokeStyle === 'rgba(178,132,255,0.14)'));
   assert.ok(scene.calls.some(({ name, args, fillStyle }) => name === 'fillRect'
-    && args[0] === 80 && fillStyle === '#43d8bc'));
+    && args[0] === 160 && fillStyle === '#43d8bc'));
   assert.ok(scene.calls.some(({ name, fillStyle }) => name === 'fillRect' && fillStyle === '#f2c64f'));
   assert.ok(scene.calls.some(({ name, fillStyle }) => name === 'fillRect' && fillStyle === '#22d8ee'));
   assert.equal(scene.calls.some(({ name }) => name === 'fillText'), false);
@@ -128,7 +128,7 @@ test('anchors a sustaining Hold at the judgment line while its far end advances 
   const lineY = geometry.lineStart.y;
   const holdBody = (playheadMs) => {
     const scene = drawCalls(320, 200, { chart: [note] }, {
-      noteStates: [{ status: 'sustaining' }], activeInputs: new Map([['key:h', { lane: 4, noteIndex: 0 }]]),
+      noteStates: [{ status: 'sustaining' }], activeInputs: new Map([['key:j', { lane: 2, noteIndex: 0 }]]),
     }, playheadMs);
     return scene.calls.find(({ name, fillStyle }) => name === 'fillRect' && fillStyle === '#22d8ee');
   };

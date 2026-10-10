@@ -77,7 +77,7 @@ test('shows the remaining season credits on the finale screen', () => {
   assert.match(html, /剩余经费[\s\S]{0,120}<strong>75<\/strong>/);
 });
 
-test('presents the eight matching lane keys, touch pads, live accuracy, and chart progress', async () => {
+test('presents the four matching lane keys, touch pads, live accuracy, and chart progress', async () => {
   const css = await readProjectStyles();
   const html = renderPerformanceView({
     campaign: { showIndex: 0 },
@@ -97,17 +97,17 @@ test('presents the eight matching lane keys, touch pads, live accuracy, and char
     restoredActiveShow: false,
   });
 
-  assert.match(html, /aria-label="[^"\n]*ASDFHJKL[^"\n]*"/);
-  assert.equal((html.match(/data-lane-key=/g) ?? []).length, 8);
-  assert.match(html, /八轨触控键盘/);
+  assert.match(html, /aria-label="[^"\n]*DFJK[^"\n]*"/);
+  assert.equal((html.match(/data-lane-key=/g) ?? []).length, 4);
+  assert.match(html, /四轨触控键盘/);
   assert.doesNotMatch(html, /Flick|Drag|Space|A\/D/);
-  assert.match(css, /\.lane-keypad\s*\{[^}]*grid-template-columns:\s*repeat\(8,\s*minmax\(0,\s*1fr\)\)/s);
+  assert.match(css, /\.lane-keypad\s*\{[^}]*grid-template-columns:\s*repeat\(4,\s*minmax\(0,\s*1fr\)\)/s);
   assert.match(html, /id="accuracy-value"/);
   assert.match(html, /id="progress-value"/);
   assert.doesNotMatch(html, /pulse-target/);
 });
 
-test('keeps a black eight-lane playfield', async () => {
+test('keeps a black four-lane playfield', async () => {
   const css = await readProjectStyles();
   assert.match(css, /\.stage-scene\s*\{[^}]*background:\s*#000(?:000)?\s*;/s);
   assert.match(css, /\.lane-keypad/);

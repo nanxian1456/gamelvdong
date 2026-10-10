@@ -1,10 +1,11 @@
-import { SHOWS, getDifficulty } from './content.js';
+import { SHOWS, TUTORIAL_SHOW, TUTORIAL_DIFFICULTY, getDifficulty } from './content.js';
 import { createAudioEngine } from './audio.js';
-import { applyAction, getEnding, newCampaign, setCampaignDifficulty, settleShow, startCampaign } from './progression.js';
+import { applyAction, getEnding, newCampaign, retryLastShow, setCampaignDifficulty, settleShow, startCampaign } from './progression.js';
 import {
   clearCampaign,
   loadCampaign,
   loadSeasonArchive,
+  isCompletedSeasonArchived,
   recordCompletedSeason,
   restartCompletedSeason,
   saveCampaign,
@@ -19,6 +20,7 @@ import {
   renderScheduleView,
   renderSettingsView,
   renderTeamView,
+  renderTutorialResultView,
 } from './views.js';
 
 const app = document.querySelector('#app');
@@ -32,6 +34,8 @@ let preferences = loadPreferences();
 let preferenceSaveUnavailable = false;
 let saveUnavailable = false;
 let saveNotice = recovered ? '没有可用的本地记录，已准备新档案。' : '';
+let tutorialSummary = null;
+let tutorialVersion = 0;
 
 const performanceController = createPerformanceController({
   root: app,
@@ -48,6 +52,45 @@ const performanceController = createPerformanceController({
     updatePreferences(changes);
   },
 });
+
+// Rehearsal has its own controller and result, never settles or saves a campaign.
+const tutorialController = createPerformanceController({
+  root: app, windowTarget: window, documentTarget: document,
+  createEngine: createAudioEngine,
+  onComplete(summary) {
+    if (currentView !== 'tutorial') return;
+    tutorialSummary = summary;
+    render();
+  },
+  onPreferenceChange: updatePreferences,
+  onExit: () => navigateTo('home'),
+});
+
+async function startTutorial(pushHistory = true) {
+  const version = ++tutorialVersion;
+  const previousView = currentView;
+  currentView = 'tutorial';
+  tutorialSummary = null;
+  if (previousView === 'campaign' && campaign.phase === 'show') await performanceController.leave();
+  await tutorialController.dispose();
+  if (version !== tutorialVersion || currentView !== 'tutorial') return;
+  if (pushHistory && previousView !== 'tutorial') history.pushState(null, '', '#tutorial');
+  render();
+  window.scrollTo(0, 0);
+}
+
+function renderTutorial() {
+  if (tutorialSummary) {
+    app.innerHTML = renderTutorialResultView(tutorialSummary);
+    app.querySelector('#retry-tutorial').addEventListener('click', () => void startTutorial());
+    app.querySelector('#exit-tutorial').addEventListener('click', () => void navigateTo('home'));
+    return;
+  }
+  void tutorialController.enter({
+    campaign: { showIndex: 0 }, show: TUTORIAL_SHOW, difficulty: TUTORIAL_DIFFICULTY,
+    preferences, tutorial: true, autoStart: false,
+  });
+}
 
 function persistCampaign() {
   if (!saveCampaign(campaign)) {
@@ -68,6 +111,7 @@ function updatePreferences(changes) {
   preferences = { ...preferences, ...changes };
   persistPreferences();
   performanceController.setPreferences(preferences);
+  tutorialController.setPreferences(preferences);
   applyMotionPreference();
 
   const notice = app.querySelector('#settings-save-note');
@@ -91,6 +135,22 @@ function renderNavigation() {
 }
 
 async function navigateTo(target, pushHistory = true) {
+  if (target === 'tutorial') {
+    if (currentView !== 'tutorial') await startTutorial(pushHistory);
+    return;
+  }
+  if (!['home', 'schedule', 'team', 'settings', 'campaign'].includes(target)) return;
+  if (currentView === 'tutorial') {
+    tutorialVersion += 1;
+    currentView = target;
+    tutorialSummary = null;
+    await tutorialController.dispose();
+    if (currentView !== target) return;
+    render();
+    if (pushHistory) history.pushState(null, '', `#${target}`);
+    window.scrollTo(0, 0);
+    return;
+  }
   if (['home', 'schedule', 'team', 'settings'].includes(target)) {
     if (currentView === target) return;
     if (currentView === 'campaign' && campaign.phase === 'show') {
@@ -135,7 +195,7 @@ function bindCampaignAction() {
       currentView = 'campaign';
       saveNotice = '';
       persistCampaign();
-      render({ autoStartPerformance: true });
+      render();
       return;
     }
     void navigateTo('campaign');
@@ -146,6 +206,7 @@ function renderHome() {
   app.innerHTML = renderHomeView({ campaign, seasonArchive, shows: SHOWS, saveNotice });
 
   bindCampaignAction();
+  app.querySelector('#open-tutorial').addEventListener('click', () => void startTutorial());
   app.querySelectorAll('input[name="season-difficulty"]').forEach((input) => {
     input.addEventListener('change', () => {
       campaign = setCampaignDifficulty(campaign, input.value);
@@ -185,7 +246,7 @@ function renderSettings() {
   app.querySelector('#setting-offset').addEventListener('input', (event) => {
     const offsetMs = Number(event.currentTarget.value);
     updatePreferences({ offsetMs });
-    app.querySelector('#setting-offset-value').value = `${preferences.offsetMs}ms`;
+    app.querySelector('#setting-offset-value').value = `${preferences.offsetMs} 毫秒`;
   });
 }
 
@@ -210,6 +271,7 @@ function renderShow({ autoStart = false } = {}) {
 
 function renderManagement() {
   app.innerHTML = renderManagementView({ campaign, saveNotice });
+  bindShowRetry();
 
   app.querySelectorAll('[data-action]').forEach((button) => {
     button.addEventListener('click', () => {
@@ -223,7 +285,7 @@ function renderManagement() {
       currentView = 'campaign';
       saveNotice = '';
       persistCampaign();
-      render({ autoStartPerformance: true });
+      render();
     });
   });
 }
@@ -231,13 +293,14 @@ function renderManagement() {
 function renderEnding() {
   recordCompletedSeason(campaign);
   seasonArchive = loadSeasonArchive();
-  if (!seasonArchive.some(({ id }) => id === campaign.seasonId)) {
+  if (!isCompletedSeasonArchived(campaign)) {
     saveNotice = '赛季已完成，但本地赛季档案暂时未能保存。';
   } else if (saveNotice === '赛季已完成，但本地赛季档案暂时未能保存。') {
     saveNotice = '';
   }
   const ending = getEnding(campaign);
   app.innerHTML = renderEndingView({ campaign, ending, saveNotice });
+  bindShowRetry();
   app.querySelector('#restart-season').addEventListener('click', () => {
     if (!window.confirm('重新开启会覆盖当前赛季进度，历史赛季档案会保留。要继续吗？')) return;
     if (!restartCompletedSeason(campaign)) {
@@ -255,8 +318,22 @@ function renderEnding() {
   });
 }
 
+function bindShowRetry() {
+  app.querySelector('#retry-show')?.addEventListener('click', () => {
+    if (!window.confirm('本场成绩和奖励将撤回，按重试成绩重新结算。之前的演出和经营选择会保留。要重试吗？')) return;
+    const retried = retryLastShow(campaign);
+    if (retried === campaign) return;
+    campaign = retried;
+    currentView = 'campaign';
+    restoredActiveShow = false;
+    saveNotice = '';
+    persistCampaign();
+    render();
+  });
+}
+
 function syncBackdropVideo() {
-  const performing = campaign.phase === 'show';
+  const performing = currentView === 'tutorial' || (currentView === 'campaign' && campaign.phase === 'show');
   document.body.classList.toggle('performing', performing);
   const video = document.querySelector('.page-background video');
   if (!video) return;
@@ -275,6 +352,7 @@ function syncBackdropVideo() {
 function render({ autoStartPerformance = false } = {}) {
   renderNavigation();
   if (currentView === 'home') renderHome();
+  else if (currentView === 'tutorial') renderTutorial();
   else if (currentView === 'schedule') renderSchedule();
   else if (currentView === 'team') renderTeam();
   else if (currentView === 'settings') renderSettings();

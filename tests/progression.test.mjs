@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { ACTIONS } from '../src/content.js';
+import * as progression from '../src/progression.js';
 import {
   applyAction,
   getEnding,
@@ -11,6 +12,33 @@ import {
 } from '../src/progression.js';
 
 const performance = (accuracy, rank) => ({ accuracy, rank, score: Math.round(accuracy * 32_000), comboMax: 0 });
+
+test('retry replaces only the latest result and restores the paid bonus without another charge', () => {
+  assert.equal(typeof progression.retryLastShow, 'function');
+  const { retryLastShow } = progression;
+  let base = settleShow(startCampaign(newCampaign('easy')), performance(1, 'S'));
+  base = applyAction(base, 'train').campaign;
+  const completed = settleShow(base, performance(0, 'C'));
+  const retry = retryLastShow(completed);
+  assert.deepEqual(retry, base);
+  assert.equal(completed.showResults.length, 2, 'does not mutate the settled record');
+  const replaced = settleShow(retry, performance(1, 'S'));
+  assert.equal(replaced.credits, 105);
+  assert.equal(replaced.showResults.length, 2);
+  assert.equal(replaced.actionHistory.length, 1);
+  assert.equal(retryLastShow(retry), retry, 'cannot rollback an unsettled show twice');
+});
+
+test('final show retry preserves prior results, members and season identity', () => {
+  assert.equal(typeof progression.retryLastShow, 'function');
+  const { retryLastShow } = progression;
+  let base = settleShow(startCampaign(newCampaign()), performance(1, 'S'));
+  base = settleShow(applyAction(base, 'rest').campaign, performance(1, 'S'));
+  base = applyAction(base, 'recruit').campaign;
+  const final = settleShow(base, performance(0, 'C'));
+  assert.equal(final.phase, 'ending');
+  assert.deepEqual(retryLastShow(final), base);
+});
 
 function settleTrainedShow(difficulty) {
   let campaign = startCampaign(newCampaign(difficulty));
@@ -61,16 +89,16 @@ test('adjusts show rewards by difficulty while keeping the standard economy unch
   assert.equal(spotlight.credits, 62);
 });
 
-test('applies the easy reward multiplier to the fixed training bonus', () => {
-  assert.equal(settleTrainedShow('easy').credits, 58);
+test('easy training returns 45 on top of difficulty-scaled earnings', () => {
+  assert.equal(settleTrainedShow('easy').credits, 90);
 });
 
-test('keeps the standard training bonus unchanged', () => {
-  assert.equal(settleTrainedShow('standard').credits, 65);
+test('standard training returns 45 on top of base earnings', () => {
+  assert.equal(settleTrainedShow('standard').credits, 95);
 });
 
-test('applies the spotlight reward multiplier to the fixed training bonus', () => {
-  assert.equal(settleTrainedShow('spotlight').credits, 80);
+test('spotlight training returns the same fixed 45 bonus', () => {
+  assert.equal(settleTrainedShow('spotlight').credits, 107);
 });
 
 test('applies all four management actions and advances after the choice', () => {
@@ -78,7 +106,7 @@ test('applies all four management actions and advances after the choice', () => 
   assert.deepEqual(ACTIONS.map(({ id }) => id), ['train', 'promote', 'recruit', 'rest']);
 
   const trained = applyAction(management, 'train').campaign;
-  assert.deepEqual([trained.credits, trained.nextShowCreditBonus, trained.showIndex, trained.phase], [70, 15, 1, 'show']);
+  assert.deepEqual([trained.credits, trained.nextShowCreditBonus, trained.showIndex, trained.phase], [70, 45, 1, 'show']);
   const promoted = applyAction(management, 'promote').campaign;
   assert.deepEqual([promoted.credits, promoted.popularity, promoted.phase], [80, 20, 'show']);
   const recruited = applyAction(management, 'recruit').campaign;
@@ -91,7 +119,17 @@ test('consumes a training bonus once when settling the next show', () => {
   const management = { ...newCampaign(), phase: 'management', credits: 100 };
   const afterTraining = applyAction(management, 'train').campaign;
   const afterShow = settleShow(afterTraining, performance(0, 'C'));
-  assert.deepEqual([afterShow.credits, afterShow.nextShowCreditBonus], [105, 0]);
+  assert.deepEqual([afterShow.credits, afterShow.nextShowCreditBonus], [135, 0]);
+  assert.equal(settleShow(afterShow, performance(0, 'C')), afterShow);
+});
+
+test('training has a net benefit of 15 over resting even on all misses at every difficulty', () => {
+  for (const difficulty of ['easy', 'standard', 'spotlight']) {
+    const base = { ...newCampaign(difficulty), phase: 'management', credits: 100 };
+    const trained = settleShow(applyAction(base, 'train').campaign, performance(0, 'C'));
+    const rested = settleShow(applyAction(base, 'rest').campaign, performance(0, 'C'));
+    assert.equal(trained.credits - rested.credits, 15);
+  }
 });
 
 test('rejects unaffordable, unknown, and capped recruitment actions without mutation', () => {

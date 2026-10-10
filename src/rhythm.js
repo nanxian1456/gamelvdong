@@ -1,5 +1,5 @@
 import { SHOWS } from './content.js';
-import { laneForKey } from './lane-input.js';
+import { LANE_KEYS, laneForKey } from './lane-input.js';
 
 const GOOD_WINDOW_MS = 170;
 const PERFECT_WINDOW_MS = 90;
@@ -32,7 +32,7 @@ export function createRhythmRuntime(chart, stageIndex = 0) {
 
 function laneForRatio(normalizedX) {
   const x = Math.max(0, Math.min(1, Number.isFinite(normalizedX) ? normalizedX : 0));
-  return Math.min(7, Math.floor(x * 8));
+  return Math.min(LANE_KEYS.length - 1, Math.floor(x * LANE_KEYS.length));
 }
 
 function noteLane(note, width, laneOf, index) {
@@ -46,7 +46,7 @@ function runtimeLane(runtime, index) {
 }
 
 function inputLane(input, width) {
-  if (Number.isInteger(input?.lane) && input.lane >= 0 && input.lane < 8) return input.lane;
+  if (Number.isInteger(input?.lane) && input.lane >= 0 && input.lane < LANE_KEYS.length) return input.lane;
   if (!Number.isFinite(input?.x)) return -1;
   return laneForRatio(input.x);
 }
@@ -116,7 +116,7 @@ function judgeHead(runtime, index, lane, source, playheadMs, difficulty, width) 
 }
 
 function pressLane(runtime, lane, source, playheadMs, difficulty, width) {
-  if (!Number.isInteger(lane) || lane < 0 || lane >= 8 || runtime.activeInputs.has(source)) return;
+  if (!Number.isInteger(lane) || lane < 0 || lane >= LANE_KEYS.length || runtime.activeInputs.has(source)) return;
   const adjusted = effectivePlayhead(playheadMs, difficulty);
   for (let index = 0; index < runtime.chart.length; index += 1) {
     if (runtime.noteStates[index].status === 'sustaining' && runtimeLane(runtime, index) === lane) {
@@ -154,7 +154,7 @@ function releaseInput(runtime, source, playheadMs, difficulty, width, height) {
 function movePointer(runtime, source, lane, playheadMs, difficulty, width) {
   const active = runtime.activeInputs.get(source);
   if (!active) return;
-  if (Number.isInteger(lane) && lane >= 0 && lane < 8) active.lane = lane;
+  if (Number.isInteger(lane) && lane >= 0 && lane < LANE_KEYS.length) active.lane = lane;
   if (active.noteIndex == null && Number.isInteger(active.lane)) {
     const adjusted = effectivePlayhead(playheadMs, difficulty);
     const goodWindow = difficulty.goodWindowMs ?? GOOD_WINDOW_MS;

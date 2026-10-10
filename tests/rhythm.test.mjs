@@ -56,15 +56,15 @@ test('accepts a touch anywhere in its lane and rejects an adjacent lane', () => 
     assert.equal(runtime.results[0]?.judgement, 'perfect', `${width}px same-lane contact`);
 
     const outside = runtimeFor([note()]);
-    processRhythmInput(outside, { type: 'pointer-down', x: 0.5 + 1 / 8 + 0.001, y: 0.84, pointerId: 7 }, 1000, getDifficulty('standard'), width, 400);
+    processRhythmInput(outside, { type: 'pointer-down', x: 0.5 + 1 / 4 + 0.001, y: 0.84, pointerId: 7 }, 1000, getDifficulty('standard'), width, 400);
     assert.equal(outside.results.length, 0, `${width}px adjacent lane is rejected`);
   }
 });
 
-test('maps ASDFHJKL to their matching lanes', () => {
-  const keys = ['a', 's', 'd', 'f', 'h', 'j', 'k', 'l'];
+test('maps DFJK to their matching lanes', () => {
+  const keys = ['d', 'f', 'j', 'k'];
   const chart = keys.map((_, lane) => note('tap', {
-    id: `lane-${lane}`, x: (lane + 0.5) / 8,
+    id: `lane-${lane}`, x: (lane + 0.5) / 4,
   }));
   const runtime = runtimeFor(chart);
 
@@ -73,28 +73,28 @@ test('maps ASDFHJKL to their matching lanes', () => {
     processRhythmInput(runtime, { type: 'key-up', key }, 1000, getDifficulty('standard'), 400);
   }
 
-  assert.deepEqual(runtime.results.map(({ judgement }) => judgement), Array(8).fill('perfect'));
+  assert.deepEqual(runtime.results.map(({ judgement }) => judgement), Array(4).fill('perfect'));
 });
 
 test('resolves Hold only after contact through its duration and treats early release as Miss', () => {
   const held = runtimeFor([note('hold', { durationMs: 200 })]);
-  processRhythmInput(held, { type: 'key-down', key: 'h' }, 1000, getDifficulty('standard'), 400);
+  processRhythmInput(held, { type: 'key-down', key: 'j' }, 1000, getDifficulty('standard'), 400);
   assert.equal(held.results.length, 0);
   advanceRhythmRuntime(held, 1200, 200, getDifficulty('standard'), 400);
   assert.equal(held.results[0]?.judgement, 'perfect');
 
   const released = runtimeFor([note('hold', { durationMs: 200 })]);
-  processRhythmInput(released, { type: 'key-down', key: 'h' }, 1000, getDifficulty('standard'), 400);
-  processRhythmInput(released, { type: 'key-up', key: 'h' }, 1100, getDifficulty('standard'), 400);
+  processRhythmInput(released, { type: 'key-down', key: 'j' }, 1000, getDifficulty('standard'), 400);
+  processRhythmInput(released, { type: 'key-up', key: 'j' }, 1100, getDifficulty('standard'), 400);
   advanceRhythmRuntime(released, 1200, 100, getDifficulty('standard'), 400);
   assert.equal(released.results[0]?.judgement, 'miss');
 });
 
 test('reacquires a sustaining Hold after pause clears physical input', () => {
   const runtime = runtimeFor([note('hold', { durationMs: 200 })]);
-  processRhythmInput(runtime, { type: 'key-down', key: 'h' }, 1000, getDifficulty('standard'), 400);
+  processRhythmInput(runtime, { type: 'key-down', key: 'j' }, 1000, getDifficulty('standard'), 400);
   processRhythmInput(runtime, { type: 'reset' }, 1100, getDifficulty('standard'), 400);
-  processRhythmInput(runtime, { type: 'key-down', key: 'h' }, 1100, getDifficulty('standard'), 400);
+  processRhythmInput(runtime, { type: 'key-down', key: 'j' }, 1100, getDifficulty('standard'), 400);
   advanceRhythmRuntime(runtime, 1200, 100, getDifficulty('standard'), 400);
 
   assert.equal(runtime.results[0]?.judgement, 'perfect');
@@ -102,8 +102,8 @@ test('reacquires a sustaining Hold after pause clears physical input', () => {
 
 test('completes a Hold when release arrives after its tail before the next frame', () => {
   const runtime = runtimeFor([note('hold', { durationMs: 200 })]);
-  processRhythmInput(runtime, { type: 'key-down', key: 'h' }, 1000, getDifficulty('standard'), 400, 400);
-  processRhythmInput(runtime, { type: 'key-up', key: 'h' }, 1201, getDifficulty('standard'), 400, 400);
+  processRhythmInput(runtime, { type: 'key-down', key: 'j' }, 1000, getDifficulty('standard'), 400, 400);
+  processRhythmInput(runtime, { type: 'key-up', key: 'j' }, 1201, getDifficulty('standard'), 400, 400);
 
   assert.equal(runtime.results[0]?.judgement, 'perfect');
 });
@@ -209,16 +209,31 @@ test('resets held input without clearing resolved chart progress', () => {
   assert.equal(runtime.activeInputs.size, 0);
 });
 
-test('A and D select their fixed lanes instead of moving a cursor', () => {
+test('D and F select their fixed lanes instead of moving a cursor', () => {
   const runtime = runtimeFor([
-    note('tap', { id: 'a-lane', x: 0.0625 }),
-    note('tap', { id: 'd-lane', x: 0.3125 }),
+    note('tap', { id: 'd-lane', x: 0.125 }),
+    note('tap', { id: 'f-lane', x: 0.375 }),
   ]);
-  processRhythmInput(runtime, { type: 'key-down', key: 'a' }, 1000, getDifficulty('standard'), 400);
   processRhythmInput(runtime, { type: 'key-down', key: 'd' }, 1000, getDifficulty('standard'), 400);
+  processRhythmInput(runtime, { type: 'key-down', key: 'f' }, 1000, getDifficulty('standard'), 400);
 
   assert.deepEqual(runtime.results.map(({ judgement }) => judgement), ['perfect', 'perfect']);
   assert.equal('cursorX' in runtime, false);
+});
+
+test('removed keys and out-of-range lane numbers cannot hit four-lane notes', () => {
+  for (const key of ['a', 's', 'h', 'l']) {
+    const runtime = runtimeFor([note('tap', { x: 0.125 })]);
+    processRhythmInput(runtime, { type: 'key-down', key }, 1000, getDifficulty('standard'), 400);
+    assert.equal(runtime.results.length, 0);
+    assert.equal(runtime.activeInputs.size, 0);
+  }
+  for (const lane of [-1, 4, 7]) {
+    const runtime = runtimeFor([note('tap', { x: 0.125 })]);
+    processRhythmInput(runtime, { type: 'pointer-down', lane, pointerId: 1 }, 1000, getDifficulty('standard'), 400);
+    assert.equal(runtime.results.length, 0);
+    assert.equal(runtime.activeInputs.size, 0);
+  }
 });
 
 test('does not let Space trigger a lane note', () => {

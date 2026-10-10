@@ -1,4 +1,4 @@
-import { ACTIONS, DIFFICULTIES, SHOWS, getDifficulty } from './content.js';
+import { ACTIONS, DIFFICULTIES, SHOWS, TRAINING_BONUS, getDifficulty } from './content.js';
 
 export function createSeasonId() {
   return globalThis.crypto?.randomUUID?.()
@@ -36,7 +36,7 @@ export function settleShow(campaign, performance) {
   const accuracy = Math.min(1, Math.max(0, Number(performance.accuracy) || 0));
   const difficulty = getDifficulty(campaign.difficulty);
   const credits = Math.floor((20 + Math.floor(accuracy * 30)) * difficulty.rewardMultiplier)
-    + Math.floor(campaign.nextShowCreditBonus * difficulty.rewardMultiplier);
+    + Math.floor(campaign.nextShowCreditBonus);
   const popularity = 5 + Math.floor(accuracy * 25);
   const result = { ...performance, accuracy, credits, popularity };
 
@@ -47,6 +47,22 @@ export function settleShow(campaign, performance) {
     popularity: campaign.popularity + popularity,
     nextShowCreditBonus: 0,
     showResults: [...campaign.showResults, result],
+  };
+}
+
+export function retryLastShow(campaign) {
+  if (!['management', 'ending'].includes(campaign.phase)) return campaign;
+  const result = campaign.showResults.at(-1);
+  if (!result || campaign.showResults.length !== campaign.showIndex + 1) return campaign;
+  const difficulty = getDifficulty(campaign.difficulty);
+  const baseCredits = Math.floor((20 + Math.floor(result.accuracy * 30)) * difficulty.rewardMultiplier);
+  // Recover the actually awarded bonus, including legacy difficulty-scaled saves.
+  return {
+    ...campaign, phase: 'show',
+    credits: Math.max(0, campaign.credits - result.credits),
+    popularity: Math.max(0, campaign.popularity - result.popularity),
+    nextShowCreditBonus: Math.max(0, result.credits - baseCredits),
+    showResults: campaign.showResults.slice(0, -1),
   };
 }
 
@@ -67,7 +83,7 @@ export function applyAction(campaign, actionId) {
     credits: campaign.credits - action.cost,
     actionHistory: [...campaign.actionHistory, actionId],
   };
-  if (action.id === 'train') next.nextShowCreditBonus = 15;
+  if (action.id === 'train') next.nextShowCreditBonus = TRAINING_BONUS;
   if (action.id === 'promote') next.popularity += 20;
   if (action.id === 'recruit') next.members += 1;
 

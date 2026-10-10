@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { SHOWS, getDifficulty } from '../src/content.js';
+import * as content from '../src/content.js';
 import { createPerformanceController } from '../src/performance-controller.js';
 
 class FakeClassList {
@@ -114,7 +115,8 @@ class FakeRoot {
     progressbar.ownerDocument = this.documentTarget;
     this.elements.set('[role="progressbar"]', progressbar);
     const countdownText = value.match(/id="countdown-label"[^>]*>([^<]*)</)?.[1] ?? '';
-    this.elements.get('#countdown-label').textContent = countdownText;
+    const countdown = this.elements.get('#countdown-label');
+    if (countdown) countdown.textContent = countdownText;
   }
 
   get innerHTML() { return this._html; }
@@ -233,6 +235,30 @@ function createHarness({ engineSetup, onComplete, startGate } = {}) {
 }
 
 const flushAsync = () => new Promise(resolve => setImmediate(resolve));
+
+test('tutorial controller shows phased hints and cues from its own chart rather than season notes', async () => {
+  assert.ok(content.TUTORIAL_SHOW);
+  const h = createHarness();
+  await h.controller.enter({ ...h.options, show: content.TUTORIAL_SHOW,
+    difficulty: content.TUTORIAL_DIFFICULTY, tutorial: true, autoStart: true });
+  assert.match(h.root.innerHTML, /id="exit-tutorial"/);
+  h.engines[0].playhead = 3200;
+  h.frames.runNext();
+  assert.match(h.root.text('#tutorial-hint'), /按一下/);
+  assert.match(h.root.text('#next-beat-label'), /0.8 秒/);
+  h.engines[0].playhead = 10500;
+  h.frames.runNext();
+  assert.match(h.root.text('#tutorial-hint'), /四.*键|四.*轨/);
+  h.engines[0].playhead = 20000;
+  h.frames.runNext();
+  assert.match(h.root.text('#tutorial-hint'), /按住/);
+  h.engines[0].playhead = 30000;
+  h.frames.runNext();
+  await flushAsync();
+  assert.equal(h.completeSummaries.length, 1);
+  assert.equal(h.completeSummaries[0].accuracy, 0);
+  assert.equal(h.windowTarget.listenerCount('keydown'), 0);
+});
 
 function createDeferred() {
   let resolve;
@@ -358,8 +384,8 @@ test('a disposed controller applies the latest preferences to its next session',
 test('processes lane input at the engine playhead and updates the HUD', async () => {
   const { controller, engines, options, root, windowTarget } = createHarness();
   await controller.enter({ ...options, autoStart: true });
-  engines[0].playhead = 600;
-  windowTarget.dispatch('keydown', { code: 'KeyA', key: 'a' });
+  engines[0].playhead = 4800;
+  windowTarget.dispatch('keydown', { code: 'KeyD', key: 'd' });
   assert.deepEqual(engines[0].feedbackCalls, ['perfect']);
   assert.equal(root.text('#progress-value'), '01 / 32');
 });
@@ -367,7 +393,7 @@ test('processes lane input at the engine playhead and updates the HUD', async ()
 test('advances from the engine playhead and freezes the frame loop while paused', async () => {
   const { controller, engines, frames, options, root } = createHarness();
   await controller.enter({ ...options, autoStart: true });
-  engines[0].playhead = 1000;
+  engines[0].playhead = 5200;
   frames.runNext();
   assert.equal(root.text('#progress-value'), '01 / 32');
   root.click('#pause-toggle');
@@ -391,12 +417,13 @@ test('processes reset during leave before the paused-input guard', async () => {
   const { completeSummaries, controller, engines, frames, options, windowTarget } = createHarness();
   const holdShow = {
     ...options.show,
+    durationMs: 0, music: [],
     beatsMs: [0],
     chart: [{ id: 'hold-1', type: 'hold', hitMs: 0, durationMs: 1000, x: 0.05 }],
   };
   await controller.enter({ ...options, show: holdShow, autoStart: true });
   engines[0].playhead = 0;
-  windowTarget.dispatch('keydown', { code: 'KeyA', key: 'a' });
+  windowTarget.dispatch('keydown', { code: 'KeyD', key: 'd' });
   await controller.leave();
   await controller.enter({ ...options, show: holdShow, autoStart: false });
   engines[0].playhead = 200;
@@ -417,6 +444,7 @@ test('completes once and destroys resources before notifying the caller', async 
   const { completeSummaries, controller, engines, frames, options } = harness;
   const shortShow = {
     ...options.show,
+    durationMs: 0, music: [],
     beatsMs: [0],
     chart: [{ id: 'tap-1', type: 'tap', hitMs: 0, x: 0.05 }],
   };
@@ -438,6 +466,7 @@ test('reports a completion callback error after cleaning up exactly once', async
   const { controller, engines, frames, options, windowTarget } = harness;
   const shortShow = {
     ...options.show,
+    durationMs: 0, music: [],
     beatsMs: [0],
     chart: [{ id: 'tap-1', type: 'tap', hitMs: 0, x: 0.05 }],
   };
@@ -455,6 +484,7 @@ test('finishes with a visual-beat notice when audio is unavailable', async () =>
   const { completeSummaries, controller, engines, frames, options, root } = harness;
   const shortShow = {
     ...options.show,
+    durationMs: 0, music: [],
     beatsMs: [0],
     chart: [{ id: 'tap-1', type: 'tap', hitMs: 0, x: 0.05 }],
   };
@@ -464,4 +494,101 @@ test('finishes with a visual-beat notice when audio is unavailable', async () =>
   frames.runNext();
   await flushAsync();
   assert.equal(completeSummaries.length, 1);
+});
+
+test('lets the musical ending finish before settling the show', async () => {
+  const { controller, engines, frames, options, completeSummaries } = createHarness();
+  await controller.enter({ ...options, show: {
+    ...options.show, durationMs: 2000,
+    chart: [{ id: 'tap-1', type: 'tap', hitMs: 0, x: 0.05 }], beatsMs: [0],
+  }, autoStart: true });
+  engines[0].playhead = 1000;
+  frames.runNext();
+  await flushAsync();
+  assert.equal(completeSummaries.length, 0);
+  assert.equal(frames.pendingCount, 1);
+  engines[0].playhead = 2000;
+  frames.runNext();
+  await flushAsync();
+  assert.equal(completeSummaries.length, 1);
+});
+
+test('pause retry clears score and starts one fresh session without completing or duplicating listeners', async () => {
+  const { controller, engines, frames, options, root, windowTarget, completeSummaries } = createHarness();
+  await controller.enter({ ...options, autoStart: true });
+  engines[0].playhead = 4800;
+  windowTarget.dispatch('keydown', { code: 'KeyD', key: 'd' });
+  windowTarget.dispatch('keyup', { code: 'KeyD', key: 'd' });
+  root.click('#pause-toggle');
+  await flushAsync();
+  root.click('#retry-performance');
+  root.click('#retry-performance');
+  await flushAsync();
+  assert.equal(engines[0].destroyCalls, 1);
+  assert.equal(engines.length, 2);
+  assert.equal(engines[1].playhead, -3000);
+  assert.equal(root.text('#score-value'), '0');
+  assert.equal(root.text('#progress-value'), '00 / 32');
+  assert.equal(frames.pendingCount, 1);
+  assert.equal(windowTarget.listenerCount('keydown'), 1);
+  assert.equal(completeSummaries.length, 0);
+});
+
+test('leaving while retry tears down audio cannot revive the abandoned stage', async () => {
+  const gate = createDeferred();
+  const { controller, engines, frames, options, root, windowTarget } = createHarness({
+    engineSetup: engine => { engine.destroy = async () => { engine.destroyCalls += 1; await gate.promise; }; },
+  });
+  await controller.enter({ ...options, autoStart: true });
+  root.click('#pause-toggle');
+  await flushAsync();
+  root.click('#retry-performance');
+  await flushAsync();
+  await controller.leave();
+  root.innerHTML = '<section id="settings-page">Settings</section>';
+  gate.resolve();
+  await flushAsync();
+  assert.equal(engines.length, 1);
+  assert.equal(frames.pendingCount, 0);
+  assert.equal(windowTarget.listenerCount('keydown'), 0);
+  assert.match(root.innerHTML, /settings-page/);
+});
+
+test('returning during retry destruction waits for teardown and keeps the new entry startable', async () => {
+  const gate = createDeferred();
+  const { controller, engines, frames, options, root } = createHarness({
+    engineSetup: engine => { engine.destroy = async () => { engine.destroyCalls += 1; await gate.promise; }; },
+  });
+  await controller.enter({ ...options, autoStart: true });
+  root.click('#pause-toggle');
+  await flushAsync();
+  root.click('#retry-performance');
+  await flushAsync();
+  await controller.leave();
+  const entering = controller.enter({ ...options, autoStart: false });
+  gate.resolve();
+  await entering;
+  await flushAsync();
+  root.click('#start-performance');
+  await flushAsync();
+  assert.equal(engines.length, 2);
+  assert.equal(engines[1].startCalls, 1);
+  assert.equal(frames.pendingCount, 1);
+});
+
+test('a pending return during destruction cannot render after another navigation away', async () => {
+  const gate = createDeferred();
+  const { controller, options, root, frames } = createHarness({
+    engineSetup: engine => { engine.destroy = async () => { await gate.promise; }; },
+  });
+  await controller.enter({ ...options, autoStart: true });
+  const disposing = controller.dispose();
+  await flushAsync();
+  const entering = controller.enter({ ...options, autoStart: false });
+  await controller.leave();
+  root.innerHTML = '<section id="settings-page">Settings</section>';
+  gate.resolve();
+  await Promise.all([disposing, entering]);
+  assert.match(root.innerHTML, /settings-page/);
+  assert.equal(frames.pendingCount, 0);
 });

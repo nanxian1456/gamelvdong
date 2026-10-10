@@ -77,6 +77,28 @@
   color: var(--ink);
   font-size: 17px;
 }
+.home-overview .home-stats {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.home-overview .resource-strip {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+.home-overview .resource-item {
+  min-width: 0;
+  width: auto;
+  gap: 8px;
+  padding: 11px 9px;
+}
+.home-overview .resource-label {
+  min-width: 0;
+}
+.home-overview .resource-label strong {
+  overflow-wrap: anywhere;
+}
 
 .home-grid {
   display: grid;

@@ -6,6 +6,7 @@ export function getInitialView(phase, hash) {
     '#team': 'team',
     '#team-title': 'team',
     '#settings': 'settings',
+    '#tutorial': 'tutorial',
   };
   if (pageByHash[hash]) return pageByHash[hash];
   if (phase === 'home') return 'home';

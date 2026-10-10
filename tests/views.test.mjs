@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { SHOWS } from '../src/content.js';
 import {
   renderEndingView,
   renderHomeView,
@@ -15,6 +16,23 @@ const shows = [
   { title: '社团之夜', bpm: 110 },
   { title: '迎新舞台', bpm: 120 },
 ];
+
+test('first performance offers concise teaching and persistent lane instructions', () => {
+  const html = renderPerformanceView({ campaign: campaign({ phase: 'show' }), show: SHOWS[0],
+    preferences: { muted: false }, runtime: null });
+  assert.match(html, /id="first-play-guide"/);
+  assert.match(html, /aria-describedby="performance-instructions"/);
+  assert.match(html, /id="performance-instructions"/);
+  assert.match(html, /D F J K/);
+  assert.match(html, /按住/);
+  assert.match(html, /id="retry-performance"/);
+});
+
+test('both settlement pages offer a retry of the current show', () => {
+  const base = campaign({ phase: 'management', showResults: [{ score: 0, rank: 'C', credits: 20, popularity: 5 }] });
+  assert.match(renderManagementView({ campaign: base, saveNotice: '' }), /id="retry-show"/);
+  assert.match(renderEndingView({ campaign: { ...base, phase: 'ending' }, ending: { rank: 'Bronze', score: 6 }, saveNotice: '' }), /id="retry-show"/);
+});
 
 function campaign(overrides = {}) {
   return {
@@ -45,6 +63,42 @@ test('home view escapes dynamic copy and presents the active campaign action', (
   assert.doesNotMatch(html, /<存档不可用>/);
 });
 
+test('home keeps one resource group inside the current-season panel without duplicate heat', () => {
+  const html = renderHomeView({ campaign: campaign({ credits: 73, popularity: 29 }), seasonArchive: [], shows, saveNotice: '' });
+  const overview = html.match(/<section class="home-overview"[\s\S]*?<\/section>/)?.[0] ?? '';
+  assert.equal((html.match(/aria-label="乐队资源"/g) ?? []).length, 1);
+  assert.match(overview, /aria-label="乐队资源"[\s\S]*经费<strong>73<\/strong>[\s\S]*乐队热度<strong>29<\/strong>/);
+  assert.doesNotMatch(overview, /当前热度/);
+});
+
+test('archive uses the same Chinese season ratings as the finale', () => {
+  for (const [rank, label] of [['Gold', '金奖'], ['Silver', '银奖'], ['Bronze', '铜奖'], ['First Stage', '初登舞台']]) {
+    const html = renderHomeView({ campaign: campaign(), seasonArchive: [{ rank, score: 12, difficulty: 'standard', completedAt: 1000 }], shows, saveNotice: '' });
+    assert.ok(html.includes(` · ${label} · 标准难度`));
+    assert.ok(!html.includes(`${label}级`));
+  }
+});
+
+test('all views display Chinese copy while retaining the four physical key labels', () => {
+  const base = campaign({ showResults: [{ score: 12345, rank: 'S', credits: 44, popularity: 25, comboMax: 18 }] });
+  const pages = [
+    renderHomeView({ campaign: base, seasonArchive: [{ rank: 'Gold', score: 12, difficulty: 'standard', completedAt: 1000 }], shows: SHOWS, saveNotice: '' }),
+    renderScheduleView({ campaign: base, shows: SHOWS }),
+    renderTeamView({ campaign: base }),
+    renderSettingsView({ campaign: base, preferences: { volume: 50, offsetMs: -25 }, preferenceSaveUnavailable: false }),
+    renderPerformanceView({ campaign: base, show: SHOWS[0], preferences: { muted: false }, runtime: null }),
+    renderManagementView({ campaign: base, saveNotice: '' }),
+    ...['Gold', 'Silver', 'Bronze', 'First Stage'].map(rank => renderEndingView({ campaign: base, ending: { rank, score: 12 }, saveNotice: '' })),
+  ];
+  for (const html of pages) {
+    const visibleText = html.replace(/<[^>]*>/g, ' ').replace(/\b[DFJK]\b/g, '');
+    assert.doesNotMatch(visibleText, /[a-z]/i);
+  }
+  assert.match(pages[4], /<kbd>D<\/kbd>[\s\S]*<kbd>F<\/kbd>[\s\S]*<kbd>J<\/kbd>[\s\S]*<kbd>K<\/kbd>/);
+  assert.match(pages[3], /-25 毫秒/);
+  assert.match(pages[5], /完美共振/);
+});
+
 test('schedule view derives completed, current, and locked show states', () => {
   const html = renderScheduleView({
     campaign: campaign({
@@ -56,7 +110,7 @@ test('schedule view derives completed, current, and locked show states', () => {
     shows,
   });
 
-  assert.match(html, /12,345 分 · A级/);
+  assert.match(html, /12,345 分 · 全场合拍/);
   assert.match(html, /✓ 已完成/);
   assert.match(html, /class="show-card is-current"[\s\S]*待演出/);
   assert.match(html, /class="show-card is-locked"[\s\S]*◆ 未解锁/);
@@ -108,7 +162,7 @@ test('performance view restores an interrupted show without inventing runtime pr
   assert.match(html, /演出恢复/);
   assert.match(html, /id="start-performance"[^>]*>从本场开始<\/button>/);
   assert.doesNotMatch(html, /id="pause-toggle"/);
-  assert.equal((html.match(/class="lane-key"/g) ?? []).length, 8);
+  assert.equal((html.match(/class="lane-key"/g) ?? []).length, 4);
   assert.match(html, /id="audio-note">本地记录不可用/);
 });
 
@@ -152,7 +206,7 @@ test('ending view presents the final rank, every show result, and save status', 
   });
 
   assert.match(html, /整座校园都在合拍。/);
-  assert.match(html, /Gold · 团队总评 6789/);
+  assert.match(html, /金奖 · 团队总评 6789/);
   assert.match(html, /1,000 分[\s\S]*2,000 分[\s\S]*3,000 分/);
   assert.match(html, /剩余经费[\s\S]*75/);
   assert.match(html, /赛季难度[\s\S]*聚光灯/);

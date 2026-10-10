@@ -1,4 +1,6 @@
-export const LANE_COUNT = 8;
+import { LANE_KEYS } from './lane-input.js';
+
+export const LANE_COUNT = LANE_KEYS.length;
 const JUDGMENT_LINE_Y = 0.84;
 
 export function getStageGeometry(width, height) {

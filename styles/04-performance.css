@@ -253,3 +253,32 @@
   justify-content: space-between;
   gap: 18px;
 }
+
+.first-play-guide {
+  max-width: 340px;
+  padding: 0 18px;
+  text-align: left;
+}
+.first-play-guide p + p { margin-top: 8px; }
+.performance-instructions {
+  margin: 10px 0 6px;
+  color: #d2dee7;
+  font-size: 12px;
+  line-height: 1.65;
+  text-align: center;
+}
+.tutorial-hint {
+  padding: 12px 16px;
+  border: 1px solid rgba(116, 221, 204, 0.35);
+  border-radius: 12px;
+  color: #d5fff5;
+  background: rgba(22, 65, 66, 0.65);
+  font-size: 14px;
+  line-height: 1.7;
+  text-align: center;
+}
+.performance-controls { flex-wrap: wrap; }
+.show-intro, .pause-overlay {
+  padding: 16px;
+  overflow-y: auto;
+}

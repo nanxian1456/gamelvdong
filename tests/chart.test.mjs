@@ -9,6 +9,35 @@ import {
 } from '../src/rhythm.js';
 import { getStageGeometry, pointOnLine } from '../src/stage-geometry.js';
 
+test('arranges each show into an intro, playable phrases and an audible ending', () => {
+  for (const show of SHOWS) {
+    assert.ok(Array.isArray(show.sections), 'show exposes its musical sections');
+    assert.deepEqual(show.sections.map(({ id }) => id), ['intro', 'verse', 'chorus', 'outro']);
+    assert.equal(show.durationMs, Math.round(64 * 60_000 / show.bpm));
+    assert.ok(show.chart[0].hitMs >= show.sections[1].startMs);
+    assert.ok(show.chart.at(-1).hitMs < show.sections[3].startMs);
+    assert.deepEqual(new Set(show.music.map(({ voice }) => voice)), new Set(['melody', 'bass', 'harmony', 'kick', 'snare', 'hat']));
+    for (const note of show.chart) {
+      const sound = show.music.find(event => event.voice === 'melody' && event.atMs === note.hitMs);
+      assert.ok(sound, `${note.id} has a musical attack`);
+      if (note.type === 'hold') assert.ok(sound.durationMs >= note.durationMs);
+    }
+    assert.ok(show.music.some(event => event.atMs === 0), 'intro plays before notes');
+    assert.ok(show.music.some(event => event.atMs >= show.sections[3].startMs), 'ending is audible');
+    const finalMelody = show.music.filter(event => event.voice === 'melody').at(-1);
+    assert.ok(Math.abs(finalMelody.frequency - 523.25) < 0.01, 'each ending resolves to the home key');
+  }
+});
+
+test('four-lane remapping preserves the original melody pitches', () => {
+  const originalMidi = [[60, 64, 67, 64, 62, 67, 69, 64],
+    [64, 69, 72, 69, 67, 72, 74, 69], [69, 74, 76, 74, 72, 76, 60, 74]];
+  for (const [stageIndex, show] of SHOWS.entries()) {
+    const melody = show.music.filter(event => event.voice === 'melody' && event.atMs >= show.chart[0].hitMs).slice(0, 8);
+    assert.deepEqual(melody.map(event => Math.round(69 + 12 * Math.log2(event.frequency / 440))), originalMidi[stageIndex]);
+  }
+});
+
 const fieldWidth = 400;
 const fieldHeight = 400;
 const geometry = getStageGeometry(fieldWidth, fieldHeight);
@@ -81,8 +110,8 @@ test('every show has a deterministic 32-note chart aligned to its beat anchors',
       }
     }
 
-    assert.ok(new Set(show.chart.map(({ type, x }) => `${type}:${x}`)).size > 8,
-      `${show.id} varies note positions and two allowed types`);
+    assert.deepEqual([...new Set(show.chart.map(({ x }) => x))].sort((a, b) => a - b),
+      [0.125, 0.375, 0.625, 0.875], `${show.id} uses only the four lane centers`);
   }
 
   assert.equal(new Set(SHOWS.map((show) => JSON.stringify(show.chart))).size, SHOWS.length,
