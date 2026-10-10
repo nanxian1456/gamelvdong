@@ -11,9 +11,9 @@
   grid-template-columns: minmax(0, 1fr) minmax(180px, min(38vw, 340px));
   align-items: center;
   gap: 24px;
-  min-height: 96px;
-  padding: 18px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+  min-height: 100px;
+  padding: 20px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.16);
 }
 .setting-row:last-of-type {
   border-bottom: 0;
@@ -24,7 +24,7 @@
 .setting-title {
   display: inline-block;
   color: #fff;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 750;
 }
 .setting-copy p {
@@ -37,10 +37,10 @@
   appearance: none;
   justify-self: end;
   position: relative;
-  width: 48px;
-  height: 28px;
+  width: 52px;
+  height: 30px;
   margin: 0;
-  border: 1px solid rgba(255, 255, 255, 0.38);
+  border: 1px solid rgba(255, 255, 255, 0.42);
   border-radius: 20px;
   background: rgba(4, 24, 32, 0.7);
   cursor: pointer;
@@ -62,7 +62,7 @@
   background: #218e7d;
 }
 .setting-switch:checked::before {
-  transform: translateX(20px);
+  transform: translateX(24px);
   background: #fff;
 }
 .setting-switch:focus-visible,
