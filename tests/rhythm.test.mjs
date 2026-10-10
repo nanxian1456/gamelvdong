@@ -18,6 +18,96 @@ const hitTap = (runtime, x = 0.5, playheadMs = 1000, width = 400, difficulty = g
   processRhythmInput(runtime, { type: 'pointer-up', pointerId: 99 }, playheadMs, difficulty, width, 400);
 };
 
+test('mashing DFJK on a single-lane note adds three mistakes without completing extra notes', () => {
+  const runtime = runtimeFor([note('tap', { x: 0.125 }), note('tap', { hitMs: 2000, x: 0.125 })]);
+  for (const key of ['d', 'f', 'j', 'k']) processRhythmInput(runtime, { type: 'key-down', key }, 1000);
+  assert.equal(runtime.inputMistakes, 3);
+  assert.equal(runtime.combo, 0);
+  assert.equal(runtime.results.length, 1);
+  assert.equal(runtime.finished, false);
+  assert.equal(getRhythmSummary(runtime).accuracy, 0.2);
+});
+
+test('genuine four-note chords and four simultaneous holds incur no empty-press penalty', () => {
+  for (const type of ['tap', 'hold']) {
+    const runtime = runtimeFor(['d', 'f', 'j', 'k'].map((_, lane) => note(type,
+      { x: (lane + 0.5) / 4, durationMs: 500 })));
+    for (const key of ['d', 'f', 'j', 'k']) processRhythmInput(runtime, { type: 'key-down', key }, 1000);
+    if (type === 'hold') advanceRhythmRuntime(runtime, 1500, 500);
+    assert.equal(runtime.inputMistakes, 0);
+    assert.equal(runtime.results.length, 4);
+    assert.equal(getRhythmSummary(runtime).accuracy, 1);
+  }
+});
+
+test('empty presses break combo without spending training protection or increasing score', () => {
+  const runtime = createRhythmRuntime([note('tap', { x: 0.125 }), note('tap', { hitMs: 2000, x: 0.125 })], 0, { comboShields: 1 });
+  processRhythmInput(runtime, { type: 'key-down', key: 'd' }, 1000);
+  processRhythmInput(runtime, { type: 'key-down', key: 'f' }, 1000);
+  assert.equal(runtime.combo, 0);
+  assert.equal(runtime.comboShields, 1);
+  assert.equal(runtime.score, 1010);
+  processRhythmInput(runtime, { type: 'key-up', key: 'd' }, 1000);
+  processRhythmInput(runtime, { type: 'key-down', key: 'd' }, 2000);
+  assert.equal(runtime.score, 2020);
+  assert.equal(getRhythmSummary(runtime).accuracy, 2 / 3);
+});
+
+test('last-note mashing still counts empty lanes after that note resolves', () => {
+  const runtime = runtimeFor([note('tap', { x: 0.125 })]);
+  for (const key of ['d', 'f', 'j', 'k']) processRhythmInput(runtime, { type: 'key-down', key }, 1000);
+  assert.equal(runtime.finished, true);
+  assert.equal(runtime.results.length, 1);
+  assert.equal(getRhythmSummary(runtime).accuracy, 0.25);
+});
+
+test('preparation and ending presses are exempt and held-key repeats are not extra mistakes', () => {
+  const runtime = runtimeFor([note('tap', { x: 0.125 })]);
+  processRhythmInput(runtime, { type: 'key-down', key: 'f' }, -1000);
+  processRhythmInput(runtime, { type: 'key-up', key: 'f' }, -1000);
+  processRhythmInput(runtime, { type: 'key-down', key: 'f' }, 500);
+  processRhythmInput(runtime, { type: 'key-up', key: 'f' }, 500);
+  assert.equal(runtime.inputMistakes, 0);
+  processRhythmInput(runtime, { type: 'key-down', key: 'f' }, 1000);
+  processRhythmInput(runtime, { type: 'key-down', key: 'f' }, 1010);
+  assert.equal(runtime.inputMistakes, 1);
+  processRhythmInput(runtime, { type: 'key-up', key: 'f' }, 1010);
+  processRhythmInput(runtime, { type: 'key-down', key: 'f' }, 1500);
+  assert.equal(runtime.inputMistakes, 1);
+});
+
+test('empty touches receive the same penalty and input reset retains mistakes', () => {
+  const runtime = runtimeFor([note('tap', { x: 0.125 })]);
+  processRhythmInput(runtime, { type: 'pointer-down', lane: 2, pointerId: 1 }, 1000);
+  processRhythmInput(runtime, { type: 'reset' }, 1000);
+  assert.equal(runtime.inputMistakes, 1);
+  assert.equal(runtime.results.length, 0);
+});
+
+test('touch lane sweeps cannot bypass empty-press penalties and same-lane jitter does not repeat them', () => {
+  const runtime = runtimeFor([note('tap', { x: 0.125 }), note('tap', { hitMs: 2000, x: 0.375 })]);
+  processRhythmInput(runtime, { type: 'pointer-down', lane: 0, pointerId: 1 }, 500);
+  // Merely keeping contact in the same lane is not a new tap when its note arrives.
+  processRhythmInput(runtime, { type: 'pointer-move', lane: 0, pointerId: 1 }, 1000);
+  assert.equal(runtime.results.length, 0);
+  processRhythmInput(runtime, { type: 'pointer-move', lane: 1, pointerId: 1 }, 1000);
+  assert.equal(runtime.inputMistakes, 1);
+  processRhythmInput(runtime, { type: 'pointer-move', lane: 1, pointerId: 1 }, 1010);
+  assert.equal(runtime.inputMistakes, 1);
+  processRhythmInput(runtime, { type: 'pointer-move', lane: 0, pointerId: 1 }, 1020);
+  assert.equal(runtime.results[0].judgement, 'perfect');
+  assert.equal(getRhythmSummary(runtime).accuracy, 1 / 3);
+});
+
+test('moving a held contact does not break or re-judge a sustaining hold', () => {
+  const runtime = runtimeFor([note('hold', { x: 0.125, durationMs: 500 })]);
+  processRhythmInput(runtime, { type: 'pointer-down', lane: 0, pointerId: 1 }, 1000);
+  processRhythmInput(runtime, { type: 'pointer-move', lane: 1, pointerId: 1 }, 1100);
+  advanceRhythmRuntime(runtime, 1500, 400);
+  assert.equal(runtime.inputMistakes, 0);
+  assert.equal(runtime.results[0].judgement, 'perfect');
+});
+
 test('keeps three ascending 32-beat charts at the planned tempos', () => {
   assert.deepEqual(SHOWS.map(({ bpm }) => bpm), [100, 110, 120]);
   assert.equal(SHOWS.length, 3);

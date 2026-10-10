@@ -137,7 +137,7 @@ export function getDifficulty(id) {
 export const TRAINING_BONUS = 45;
 
 export const ACTIONS = [
-  { id: 'train', name: '加练合奏', description: '花费 30，下场固定额外获得 45 经费，净赚 15。', cost: 30 },
+  { id: 'train', name: '加练合奏', description: '仅下一场：固定额外获得 45 经费，并提供一次已有连击保护；失误照常计入准确率与计分。', cost: 30 },
   { id: 'promote', name: '校园宣传', description: '乐队热度增加 20。', cost: 20 },
   { id: 'recruit', name: '招募新成员', description: '乐队人数增加 1，最多 5 人。', cost: 40 },
   { id: 'rest', name: '整理器材', description: '不消耗经费，直接准备下一场。', cost: 0 },

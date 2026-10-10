@@ -1,5 +1,6 @@
 import { ACTIONS, DIFFICULTIES, SHOWS, getDifficulty } from './content.js';
 import { LANE_KEYS } from './lane-input.js';
+import { applyAction, getShowEffects } from './progression.js';
 
 const MEMBER_ROLES = ['主唱', '键盘', '鼓手', '贝斯', '采样'];
 const RANK_NAMES = { S: '完美共振', A: '全场合拍', B: '稳定发挥', C: '初次登台' };
@@ -337,6 +338,7 @@ export function renderPerformanceView({
 }) {
   const hasRuntime = Boolean(runtime);
   const isRecovery = !hasRuntime && restoredActiveShow;
+  const effects = tutorial ? { comboShields: 0 } : getShowEffects(campaign);
   return `<section class="performance-page" aria-labelledby="performance-title">
     <div class="performance-shell">
       <div class="performance-topbar">
@@ -412,6 +414,9 @@ export function renderPerformanceView({
       <div class="judgement-banner" id="judgement-banner" aria-live="polite">${hasRuntime ? '准备就绪' : ''}</div>
       <p class="performance-help" id="countdown-label" aria-live="polite">${hasRuntime ? '3' : ''}</p>
       <p class="performance-instructions" id="performance-instructions">D F J K 对应左到右四轨 · 短音符按一下 · 长音符按住至尾部到白线</p>
+      <p class="performance-help">按对应轨道，不要四键乱按：空按会中断连击并降低准确率。</p>
+      ${tutorial ? '' : `<p class="performance-help">本场阵容 · ${campaign.members} 人：${MEMBER_ROLES.slice(0, campaign.members).join(' / ')}</p>`}
+      ${effects.comboShields ? `<p class="performance-help" id="combo-shield-status" role="status">加练效果 · 连击保护剩余 ${runtime?.rhythm.comboShields ?? 1} 次 · 本场结算额外经费 +${campaign.nextShowCreditBonus}</p>` : ''}
       ${tutorial ? `<p id="tutorial-hint" class="tutorial-hint" role="status">${escapeHtml(show.sections[0].instruction)}</p>` : ''}
       <p class="performance-help">当前乐段：<span id="music-section">准备</span> · 本场 ${Math.round((show.durationMs ?? 0) / 1000)} 秒</p>
       <p class="visual-audio-note" id="audio-note">${saveUnavailable ? '本地记录不可用' : ''}</p>
@@ -475,11 +480,16 @@ export function renderManagementView({ campaign, saveNotice }) {
           const disabled =
             campaign.credits < action.cost || (action.id === 'recruit' && campaign.members >= 5);
           const costLabel = action.cost === 0 ? '免费' : `${action.cost} 经费`;
+          const preview = applyAction(campaign, action.id);
+          const duration = action.id === 'train' ? '仅下一场生效'
+            : action.id === 'rest' ? '直接进入下一场，无额外加成' : '本季保留';
+          const previewText = preview.error ?? `选择后经费 ${preview.campaign.credits} · 热度 ${preview.campaign.popularity} · 阵容 ${preview.campaign.members} 人 · ${duration}`;
           return `<button class="action-button" type="button" data-action="${action.id}" ${disabled ? 'disabled' : ''}>
             <span class="action-index">0${index + 1}</span>
             <span class="action-copy">
               <strong>${escapeHtml(action.name)}</strong>
               <small>${escapeHtml(action.description)}</small>
+              <small>${escapeHtml(previewText)}</small>
             </span>
             <span class="action-cost ${action.cost === 0 ? 'free' : ''}">${costLabel}</span>
           </button>`;

@@ -8,6 +8,7 @@ import {
 } from './rhythm.js';
 import { drawStage, getStageGeometry, resizeStageCanvas } from './stage.js';
 import { renderPerformanceView } from './views.js';
+import { getShowEffects } from './progression.js';
 
 const DEFAULT_PREFERENCES = {
   muted: false,
@@ -108,7 +109,8 @@ export function createPerformanceController({
   };
 
   const judgementText = result => {
-    if (result.judgement === 'miss') return '错过';
+    if (result.emptyPress) return '空按 · 连击中断';
+    if (result.judgement === 'miss') return result.comboProtected ? '错过 · 连击已保护' : '错过';
     const base = result.judgement === 'perfect' ? '完美' : '命中';
     const hint = result.timing === 'early' ? ' · 偏快' : result.timing === 'late' ? ' · 偏慢' : '';
     return result.judgement === 'perfect' && !hint ? base : base + hint;
@@ -145,11 +147,13 @@ export function createPerformanceController({
   const updateHud = playheadMs => {
     if (!session || !hud) return;
     const rhythm = session.rhythm;
+    const shieldStatus = root.querySelector('#combo-shield-status');
+    if (shieldStatus) shieldStatus.textContent = `加练效果 · 连击保护剩余 ${rhythm.comboShields} 次 · 本场结算额外经费 +${entry.campaign.nextShowCreditBonus}`;
     const completed = rhythm.results.length;
     const total = rhythm.chart.length;
     const scoreText = rhythm.score.toLocaleString();
     const comboText = String(rhythm.combo);
-    const accuracyText = `${Math.round((total ? rhythm.accuracyPoints / (total * 1000) : 0) * 100)}%`;
+    const accuracyText = `${Math.round(getRhythmSummary(rhythm).accuracy * 100)}%`;
     const progressText = `${String(completed).padStart(2, '0')} / ${total}`;
     if (hud.progressValue && hud.lastProgress !== completed) {
       hud.progressValue.textContent = progressText;
@@ -220,6 +224,7 @@ export function createPerformanceController({
     }
     if (session.paused || session.finishing) return;
     const firstNewResult = session.rhythm.results.length;
+    const previousInputMistakes = session.rhythm.inputMistakes;
     processRhythmInput(
       session.rhythm,
       event,
@@ -231,6 +236,10 @@ export function createPerformanceController({
     for (const result of session.rhythm.results.slice(firstNewResult)) {
       session.engine.feedback(result.judgement);
       showJudgement(result);
+    }
+    if (session.rhythm.inputMistakes > previousInputMistakes) {
+      session.engine.feedback('miss');
+      showJudgement({ judgement: 'miss', emptyPress: true });
     }
     updateHud(session.engine.getPlayhead());
   };
@@ -394,7 +403,8 @@ export function createPerformanceController({
       const engine = createEngine();
       session = {
         engine,
-        rhythm: createRhythmRuntime(entry.show.chart, entry.campaign.showIndex),
+        rhythm: createRhythmRuntime(entry.show.chart, entry.campaign.showIndex,
+          entry.tutorial ? {} : getShowEffects(entry.campaign)),
         paused: false,
         finishing: false,
         lastPlayheadMs: -3000,

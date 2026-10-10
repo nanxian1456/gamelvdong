@@ -30,6 +30,14 @@ export function setCampaignDifficulty(campaign, difficultyId) {
   return { ...campaign, difficulty: difficultyId };
 }
 
+export function getShowEffects(campaign) {
+  return {
+    comboShields: campaign.phase === 'show'
+      && campaign.actionHistory.at(-1) === 'train'
+      && campaign.nextShowCreditBonus > 0 ? 1 : 0,
+  };
+}
+
 export function settleShow(campaign, performance) {
   if (campaign.phase !== 'show' || !SHOWS[campaign.showIndex]) return campaign;
 

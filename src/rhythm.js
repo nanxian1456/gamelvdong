@@ -19,15 +19,17 @@ function makeRuntimeState(chart, stageIndex) {
     combo: 0,
     comboMax: 0,
     accuracyPoints: 0,
+    inputMistakes: 0,
     activeInputs: new Map(),
     finished: chart.length === 0,
     heldKeys: new Set(),
   };
 }
 
-export function createRhythmRuntime(chart, stageIndex = 0) {
+export function createRhythmRuntime(chart, stageIndex = 0, effects = {}) {
   const notes = Array.isArray(chart) ? chart : chart?.chart ?? [];
-  return makeRuntimeState(notes, stageIndex);
+  return { ...makeRuntimeState(notes, stageIndex), scoringCombo: null,
+    comboShields: effects.comboShields === 1 ? 1 : 0 };
 }
 
 function laneForRatio(normalizedX) {
@@ -81,12 +83,17 @@ function recordResult(runtime, index, judgement, difficulty = {}, deltaMs = null
   state.status = 'resolved';
   state.judgement = judgement;
   const base = BASE_POINTS[judgement];
-  runtime.combo = judgement === 'miss' ? 0 : runtime.combo + 1;
+  const scoringCombo = runtime.scoringCombo ?? runtime.combo;
+  const comboProtected = judgement === 'miss' && runtime.combo > 0 && runtime.comboShields > 0;
+  if (comboProtected) runtime.comboShields -= 1;
+  runtime.combo = judgement === 'miss' ? comboProtected ? runtime.combo : 0 : runtime.combo + 1;
+  runtime.scoringCombo = judgement === 'miss' ? 0 : scoringCombo + 1;
   runtime.comboMax = Math.max(runtime.comboMax, runtime.combo);
   runtime.accuracyPoints += base;
   runtime.score += Math.round(base * (STAGE_MULTIPLIERS[runtime.stageIndex] ?? 1)
-    * (difficulty.scoreMultiplier ?? 1)) + (judgement === 'miss' ? 0 : runtime.combo * 10);
+    * (difficulty.scoreMultiplier ?? 1)) + (judgement === 'miss' ? 0 : runtime.scoringCombo * 10);
   runtime.results.push({ noteIndex: index, judgement, deltaMs,
+    ...(comboProtected ? { comboProtected: true } : {}),
     timing: deltaMs == null ? null : (deltaMs < -8 ? 'early' : deltaMs > 8 ? 'late' : 'on') });
   runtime.finished = runtime.results.length === runtime.chart.length;
 }
@@ -135,7 +142,19 @@ function pressLane(runtime, lane, source, playheadMs, difficulty, width) {
     const delta = Math.abs(adjusted - runtime.chart[index].hitMs);
     if (delta <= goodWindow && delta < bestDelta) { bestDelta = delta; best = index; }
   }
-  if (best >= 0) judgeHead(runtime, best, lane, source, playheadMs, difficulty, width);
+  if (best >= 0) {
+    judgeHead(runtime, best, lane, source, playheadMs, difficulty, width);
+  } else if (runtime.chart.length) {
+    const firstHead = Math.min(...runtime.chart.map(note => note.hitMs));
+    const lastTail = Math.max(...runtime.chart.map(note => note.hitMs + (note.type === 'hold' ? note.durationMs ?? 0 : 0)));
+    if (adjusted >= firstHead - goodWindow && adjusted <= lastTail + goodWindow) {
+      // Empty presses are not chart results: they must not advance progress or end the show.
+      // Training protects missed notes, not indiscriminate input on empty lanes.
+      runtime.inputMistakes += 1;
+      runtime.combo = 0;
+      runtime.scoringCombo = 0;
+    }
+  }
 }
 
 function releaseInput(runtime, source, playheadMs, difficulty, width, height) {
@@ -153,21 +172,12 @@ function releaseInput(runtime, source, playheadMs, difficulty, width, height) {
 
 function movePointer(runtime, source, lane, playheadMs, difficulty, width) {
   const active = runtime.activeInputs.get(source);
-  if (!active) return;
-  if (Number.isInteger(lane) && lane >= 0 && lane < LANE_KEYS.length) active.lane = lane;
-  if (active.noteIndex == null && Number.isInteger(active.lane)) {
-    const adjusted = effectivePlayhead(playheadMs, difficulty);
-    const goodWindow = difficulty.goodWindowMs ?? GOOD_WINDOW_MS;
-    let best = -1;
-    let bestDelta = Infinity;
-    for (let index = 0; index < runtime.chart.length; index += 1) {
-      if (runtime.noteStates[index].status !== 'pending') continue;
-      if (runtimeLane(runtime, index) !== active.lane) continue;
-      const delta = Math.abs(adjusted - runtime.chart[index].hitMs);
-      if (delta <= goodWindow && delta < bestDelta) { bestDelta = delta; best = index; }
-    }
-    if (best >= 0) judgeHead(runtime, best, active.lane, source, playheadMs, difficulty, width);
-  }
+  if (!active || !Number.isInteger(lane) || lane < 0 || lane >= LANE_KEYS.length
+    || lane === active.lane || active.noteIndex != null) return;
+  // Only crossing into another lane is a new attempt; jitter must not auto-hit or repeat penalties.
+  // Contacts attached to holds stay attached until release, even if the finger drifts.
+  runtime.activeInputs.delete(source);
+  pressLane(runtime, lane, source, playheadMs, difficulty, width);
 }
 
 export function processRhythmInput(runtime, input, playheadMs, difficulty = {}, fieldWidthCssPx = 400, fieldHeightCssPx = 400) {
@@ -235,7 +245,7 @@ export function advanceRhythmRuntime(runtime, playheadMs, deltaMs, difficulty = 
 }
 
 export function getRhythmSummary(runtime, difficulty = {}) {
-  const total = runtime.chart.length;
+  const total = runtime.chart.length + runtime.inputMistakes;
   const accuracy = total === 0 ? 0 : runtime.accuracyPoints / (total * 1000);
   const rank = accuracy >= 0.95 ? 'S'
     : accuracy >= 0.82 ? 'A'

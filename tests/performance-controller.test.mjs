@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { SHOWS, getDifficulty } from '../src/content.js';
 import * as content from '../src/content.js';
 import { createPerformanceController } from '../src/performance-controller.js';
+import { newCampaign, startCampaign, settleShow, applyAction } from '../src/progression.js';
 
 class FakeClassList {
   values = new Set();
@@ -235,6 +236,55 @@ function createHarness({ engineSetup, onComplete, startGate } = {}) {
 }
 
 const flushAsync = () => new Promise(resolve => setImmediate(resolve));
+
+test('empty key presses update judgement and accuracy without advancing note progress; retry clears them', async () => {
+  const h = createHarness();
+  const show = { ...SHOWS[0], chart: [1000, 2000].map(hitMs => ({ type: 'tap', hitMs, x: 0.125 })),
+    beatsMs: [1000, 2000], durationMs: 5000 };
+  await h.controller.enter({ ...h.options, show, autoStart: true });
+  h.engines[0].playhead = 1000;
+  h.windowTarget.dispatch('keydown', { code: 'KeyD', key: 'd' });
+  h.windowTarget.dispatch('keydown', { code: 'KeyF', key: 'f' });
+  assert.equal(h.root.querySelector('#accuracy-value').textContent, '33%');
+  assert.equal(h.root.querySelector('#combo-value').textContent, '0');
+  assert.match(h.root.querySelector('#judgement-banner').textContent, /空按/);
+  assert.equal(h.root.querySelector('[role="progressbar"]').getAttribute('aria-valuenow'), '1');
+  h.root.click('#pause-toggle');
+  await flushAsync();
+  assert.equal(h.root.querySelector('#accuracy-value').textContent, '33%');
+  h.root.click('#retry-performance');
+  await flushAsync();
+  assert.equal(h.root.querySelector('#accuracy-value').textContent, '0%');
+  h.engines[1].playhead = 1000;
+  h.windowTarget.dispatch('keydown', { code: 'KeyD', key: 'd' });
+  assert.equal(h.root.querySelector('#accuracy-value').textContent, '50%');
+  await h.controller.dispose();
+});
+
+test('paid training reaches the controller HUD and resets only when the player retries', async () => {
+  const h = createHarness();
+  const campaign = applyAction(settleShow(startCampaign(newCampaign()),
+    { accuracy: 1, rank: 'S', score: 32000, comboMax: 32 }), 'train').campaign;
+  const show = { ...SHOWS[1], chart: [1000, 2000, 3000].map(hitMs => ({ type: 'tap', hitMs, x: 0.125 })),
+    beatsMs: [1000, 2000, 3000], durationMs: 5000 };
+  await h.controller.enter({ ...h.options, campaign, show, autoStart: true });
+  h.engines[0].playhead = 1000;
+  h.windowTarget.dispatch('keydown', { code: 'KeyD', key: 'd' });
+  h.windowTarget.dispatch('keyup', { code: 'KeyD', key: 'd' });
+  h.engines[0].playhead = 2200;
+  h.frames.runNext();
+  assert.equal(h.root.querySelector('#combo-value').textContent, '1');
+  assert.match(h.root.querySelector('#judgement-banner').textContent, /连击已保护/);
+  assert.match(h.root.querySelector('#combo-shield-status').textContent, /剩余 0 次/);
+  h.root.click('#pause-toggle');
+  await flushAsync();
+  assert.match(h.root.querySelector('#combo-shield-status').textContent, /剩余 0 次/);
+  h.root.click('#retry-performance');
+  await flushAsync();
+  assert.match(h.root.querySelector('#combo-shield-status').textContent, /剩余 1 次/);
+  assert.equal(campaign.credits, 20, 'retry does not charge training again');
+  await h.controller.dispose();
+});
 
 test('tutorial controller shows phased hints and cues from its own chart rather than season notes', async () => {
   assert.ok(content.TUTORIAL_SHOW);
