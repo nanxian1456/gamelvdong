@@ -17,7 +17,7 @@
   --yellow: #f2c64f;
   --night: #101d2b;
   --night-soft: #192b3b;
-  --radius: 6px;
+  --radius: 12px;
 
   /* 设计 token：圆角尺度（新增代码优先用这组，旧值保持不动） */
   --radius-sm: 3px;

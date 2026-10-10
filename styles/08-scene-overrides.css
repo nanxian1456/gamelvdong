@@ -51,7 +51,7 @@
   margin-top: 10px;
   padding: 21px 22px;
   border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 5px;
+  border-radius: var(--radius);
   background: linear-gradient(130deg, rgba(27, 48, 62, 0.82), rgba(28, 38, 43, 0.68));
   box-shadow: inset 0 1px rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(20px) saturate(0.9);
@@ -79,7 +79,7 @@
   min-width: 0;
   padding: 12px;
   border: 1px solid rgba(255, 255, 255, 0.17);
-  border-radius: 5px;
+  border-radius: var(--radius);
   background: rgba(18, 33, 45, 0.62);
   color: #f4f7f6;
   backdrop-filter: blur(18px);
@@ -134,7 +134,7 @@
 .show-card {
   min-height: 70px;
   border-color: rgba(255, 255, 255, 0.14);
-  border-radius: 4px;
+  border-radius: var(--radius);
   background: rgba(255, 255, 255, 0.065);
   color: #f7f8f6;
 }
@@ -326,7 +326,7 @@
 }
 .ending-hero {
   border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 5px;
+  border-radius: var(--radius);
   background: rgba(16, 30, 42, 0.7);
   box-shadow: inset 0 1px rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(22px);
