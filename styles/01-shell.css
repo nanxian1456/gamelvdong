@@ -79,6 +79,26 @@
   font-size: 20px;
   font-weight: 800;
 }
+/* 本人确认追加：品牌「律」字霓虹艺术化（宋体 + 深紫黑底 + 淡蓝字）。
+   用 .app-header 前缀提高特异性覆盖 09-backdrop-composition.css 的纯白样式；
+   底色 #0D0221 比页面底（--night #07041A）深一档，字色 #D2E9FF；
+   配色与现有霓虹主题协调，不覆盖 SHALE612 的主题，仅改字体/颜色/光效，尺寸布局不变。 */
+.app-header .brand-mark {
+  background: #0D0221;
+  color: #D2E9FF;
+  font-family: "SimSun", "宋体", serif;
+  font-weight: 900;
+  border: 1px solid rgba(var(--mint-rgb), 0.42);
+  box-shadow:
+    0 0 16px rgba(var(--coral-rgb), 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  transition: box-shadow 140ms ease;
+}
+.app-header .brand:hover .brand-mark {
+  box-shadow:
+    0 0 22px rgba(var(--coral-rgb), 0.78),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28);
+}
 .brand-copy {
   display: grid;
   gap: 2px;
