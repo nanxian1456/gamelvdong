@@ -13,6 +13,7 @@
 
 | 时间（北京时间） | 修改人 | 类型 | 修改内容 | 涉及范围 |
 | --- | --- | --- | --- | --- |
+| 2026-10-12 13:30 | nanxian1456 | 主题配色 | 按 SHALE612 霓虹方案将主体调整为深紫底色、浅紫白正文、青色选中与焦点、品红热度与悬停、黄色得分与完成状态。<br>调整现有视频调色和紫色、品红氛围光，保留原视频素材、页面结构、玩法及成员已完成的控件尺寸和手机布局。<br>对齐后排覆盖层、毛玻璃面板、按钮辉光、日程状态、经营标签、新手提示及设置控件，主按钮保持白底，副按钮保留模糊。同步主题维护说明。 | `styles/00-foundation.css`、`styles/01-shell.css`、`styles/09-backdrop-composition.css`、`styles/10-surface-overrides.css`、`styles/11-settings.css`、`styles/12-final-polish.css`、`docs/开发维护指南.md`、`CHANGELOG.md` |
 | 2026-10-10 23:50 | nanxian1456 | 功能与判定修复 | 经营选项增加选择后资源及生效范围预览；加练提供仅下一场的一次已有连击保护，显示连击与计分连击分离，不改变原始命中计分；演出页显示招募后的阵容人数和角色。<br>修复反复齐按 DFJK 忽略空轨获取高准确率的问题：演奏阶段空按独立记为失误，中断连击并降低准确率；不推进音符进度，不消耗加练保护。<br>保留真实多键合奏与长按；准备及收尾免罚，重复按住不重复处罚；触屏跨轨进入统一判定，堵住提前按住及扫轨绕过处罚的方式。<br>同步操作提示、README、玩法说明及暂停、重试、存档与新手练习隔离测试；旧存档格式保持不变。成员文案、事件与伴奏扩展留待后续。 | `src/content.js`、`src/progression.js`、`src/rhythm.js`、`src/views.js`、`src/performance-controller.js`、`tests/`、`README.md`、`docs/玩法说明.md`、`CHANGELOG.md` |
 | 2026-10-10 20:46 | cwyYS | 样式 | 修复 `.setting-switch:checked::before` 中 `translateX(20px;` 缺少右括号的语法错误，恢复设置开关的选中态样式。<br>优化设置页：设置行 `min-height` 调整为 100px、`padding` 调整为 20px 0、分隔线不透明度调整为 0.16；标题字号调整为 16px；开关尺寸调整为 52×30px、边框不透明度调整为 0.42，滑块位移同步调整为 `translateX(24px)` 以保证滑块在轨道内。<br>窄屏 420px 下首页按钮组改为上下排列且等宽。 | `styles/11-settings.css`、`styles/07-responsive.css`、`CHANGELOG.md` |
 | 2026-10-10 14:00 | nanxian1456 | 文档 | 校正上一提交 `2d0fdca` 的台账时间：提交前填写为 13:59，实际 Git 提交时间为北京时间 14:00:01，记录统一调整为 14:00。代码未改动。 | `CHANGELOG.md` |

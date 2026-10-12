@@ -23,13 +23,13 @@
 }
 .setting-title {
   display: inline-block;
-  color: #fff;
+  color: var(--text-primary);
   font-size: 16px;
   font-weight: 750;
 }
 .setting-copy p {
   margin: 5px 0 0;
-  color: #c1cccf;
+  color: var(--muted);
   font-size: 12px;
   line-height: 1.5;
 }
@@ -42,7 +42,7 @@
   margin: 0;
   border: 1px solid rgba(255, 255, 255, 0.42);
   border-radius: 20px;
-  background: rgba(4, 24, 32, 0.7);
+  background: rgba(23, 11, 58, 0.7);
   cursor: pointer;
   transition: background-color 140ms ease, border-color 140ms ease;
 }
@@ -58,8 +58,8 @@
   transition: transform 140ms ease;
 }
 .setting-switch:checked {
-  border-color: #43d8bc;
-  background: #218e7d;
+  border-color: var(--mint);
+  background: var(--mint-dark);
 }
 .setting-switch:checked::before {
   transform: translateX(24px);
@@ -67,7 +67,7 @@
 }
 .setting-switch:focus-visible,
 .volume-control input:focus-visible {
-  outline: 3px solid #f2c64f;
+  outline: 3px solid var(--mint);
   outline-offset: 3px;
 }
 .volume-control {
@@ -79,7 +79,7 @@
 .volume-control input {
   width: 100%;
   min-width: 0;
-  accent-color: #43d8bc;
+  accent-color: var(--mint);
 }
 .volume-control output {
   color: #fff;
@@ -90,7 +90,7 @@
 .settings-save-note {
   margin: 0;
   padding: 12px 0 8px;
-  color: #f2c64f;
+  color: var(--yellow);
   font-size: 12px;
 }
 .settings-save-note[hidden] {

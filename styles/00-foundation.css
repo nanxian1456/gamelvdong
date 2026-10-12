@@ -3,20 +3,29 @@
 :root {
   color-scheme: dark;
   font-family: 'Plus Jakarta Sans', 'Microsoft YaHei UI', 'Noto Sans CJK SC', system-ui, sans-serif;
-  color: #f4f7f6;
-  background: #030508;
+  color: var(--text-primary);
+  background: var(--night);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
-  --ink: #101e2b;
-  --muted: #b1bdc5;
-  --line: rgba(226, 239, 238, 0.18);
-  --paper: rgba(19, 34, 47, 0.74);
-  --mint: #43d8bc;
-  --mint-dark: #117c70;
-  --coral: #f36e62;
-  --yellow: #f2c64f;
-  --night: #101d2b;
-  --night-soft: #192b3b;
+  /* SHALE612 霓虹配色：保留原变量名，避免影响页面和脚本。 */
+  --text-primary: #F2EEFF;
+  --ink: #170B3A;
+  --muted: #A99CD8;
+  --line: rgba(45, 226, 255, 0.24);
+  --paper: rgba(23, 11, 58, 0.74);
+  --mint: #2DE2FF;
+  --mint-dark: #9B5CFF;
+  --coral: #FF3DAE;
+  --yellow: #FFE066;
+  --night: #07041A;
+  --night-soft: #170B3A;
+  --mint-rgb: 45, 226, 255;
+  --coral-rgb: 255, 61, 174;
+  --yellow-rgb: 255, 224, 102;
+  --violet-rgb: 155, 92, 255;
+  --background-ambience:
+    radial-gradient(ellipse at 18% 18%, rgba(var(--violet-rgb), 0.28), transparent 62%),
+    radial-gradient(ellipse at 85% 72%, rgba(var(--coral-rgb), 0.16), transparent 60%);
   --radius: 6px;
 
   /* 设计 token：圆角尺度（新增代码优先用这组，旧值保持不动） */
@@ -41,8 +50,8 @@
 
   /* 设计 token：阴影 */
   --shadow-lift: 0 10px 28px rgba(0, 0, 0, 0.4);
-  --shadow-glow-mint: 0 0 32px rgba(67, 216, 188, 0.35);
-  --shadow-glow-gold: 0 0 48px rgba(242, 198, 79, 0.4);
+  --shadow-glow-mint: 0 0 20px rgba(var(--mint-rgb), 0.55), 0 0 48px rgba(var(--mint-rgb), 0.25);
+  --shadow-glow-gold: 0 0 48px rgba(var(--yellow-rgb), 0.4);
 
   /* 设计 token：动效（时长 + 缓动） */
   --dur-instant: 80ms;
@@ -61,7 +70,7 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  background: #030508;
+  background: var(--night);
 }
 
 button,

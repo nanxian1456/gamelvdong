@@ -107,16 +107,18 @@
 @media (min-aspect-ratio: 17/10) {
   .page-scrim {
     background:
-      linear-gradient(180deg, rgba(4, 20, 32, 0.48), rgba(4, 20, 32, 0.25) 36%, transparent 59%),
-      linear-gradient(180deg, transparent 48%, rgba(8, 18, 23, 0.68));
+      var(--background-ambience),
+      linear-gradient(180deg, rgba(7, 4, 26, 0.48), rgba(7, 4, 26, 0.25) 36%, transparent 59%),
+      linear-gradient(180deg, transparent 48%, rgba(7, 4, 26, 0.68));
   }
 }
 
 @media (min-aspect-ratio: 19/10) {
   .page-scrim {
     background:
-      linear-gradient(180deg, rgba(4, 20, 32, 0.58), rgba(4, 20, 32, 0.31) 37%, transparent 62%),
-      linear-gradient(180deg, transparent 48%, rgba(8, 18, 23, 0.68));
+      var(--background-ambience),
+      linear-gradient(180deg, rgba(7, 4, 26, 0.58), rgba(7, 4, 26, 0.31) 37%, transparent 62%),
+      linear-gradient(180deg, transparent 48%, rgba(7, 4, 26, 0.68));
   }
 }
 
@@ -126,8 +128,9 @@
   }
   .page-scrim {
     background:
-      linear-gradient(180deg, rgba(4, 20, 32, 0.56), rgba(4, 20, 32, 0.3) 38%, transparent 64%),
-      linear-gradient(180deg, transparent 48%, rgba(8, 18, 23, 0.68));
+      var(--background-ambience),
+      linear-gradient(180deg, rgba(7, 4, 26, 0.56), rgba(7, 4, 26, 0.3) 38%, transparent 64%),
+      linear-gradient(180deg, transparent 48%, rgba(7, 4, 26, 0.68));
   }
 }
 
@@ -141,12 +144,12 @@
     object-position: 80% bottom;
   }
   .page-scrim {
-    background: linear-gradient(
+    background: var(--background-ambience), linear-gradient(
       180deg,
-      rgba(6, 22, 34, 0.48) 0%,
-      rgba(6, 22, 34, 0.26) 38%,
-      rgba(8, 18, 23, 0.12) 68%,
-      rgba(8, 18, 23, 0.66) 100%
+      rgba(7, 4, 26, 0.48) 0%,
+      rgba(7, 4, 26, 0.26) 38%,
+      rgba(7, 4, 26, 0.12) 68%,
+      rgba(7, 4, 26, 0.66) 100%
     );
   }
 }

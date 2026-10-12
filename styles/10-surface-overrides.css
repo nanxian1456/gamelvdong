@@ -2,9 +2,9 @@
 
 /* ---- 09 表面统一层：毛玻璃面板质感覆盖 ---- */
 :root {
-  --surface-panel: rgba(10, 13, 18, 0.58);
-  --surface-panel-highlight: rgba(255, 255, 255, 0.085);
-  --surface-inset: rgba(255, 255, 255, 0.065);
+  --surface-panel: rgba(20, 16, 34, 0.58);
+  --surface-panel-highlight: rgba(155, 92, 255, 0.085);
+  --surface-inset: rgba(155, 92, 255, 0.08);
 }
 
 .section-panel,
@@ -17,6 +17,9 @@
 .ending-hero {
   background: linear-gradient(145deg, var(--surface-panel-highlight), var(--surface-panel));
   backdrop-filter: blur(24px) saturate(1.2);
+  color: var(--text-primary);
+  border-color: rgba(var(--mint-rgb), 0.42);
+  box-shadow: inset 0 0 34px rgba(var(--violet-rgb), 0.24);
 }
 
 .resource-item,
@@ -27,6 +30,8 @@
 .action-button,
 .ending-result-row {
   background: var(--surface-inset);
+  color: var(--text-primary);
+  border-color: rgba(var(--mint-rgb), 0.2);
 }
 
 .stage-scene {
@@ -37,16 +42,16 @@
 }
 .pause-overlay,
 .show-intro {
-  background: rgba(5, 38, 48, 0.9);
+  background: rgba(23, 11, 58, 0.94);
 }
 .member-token {
   background: var(--surface-inset);
 }
 .resource-label {
-  color: rgba(255, 255, 255, 0.74);
+  color: var(--muted);
 }
 .resource-label strong {
-  color: #fff;
+  color: var(--text-primary);
 }
 .resource-item,
 .show-card,
@@ -60,4 +65,112 @@
 }
 .settings-page .page-heading {
   margin-bottom: 8px;
+}
+
+/* 霓虹语义颜色：覆盖旧场景层中的固定色，布局与尺寸保持不变。 */
+.home-page > .page-heading,
+.section-page-header .page-heading,
+.ending-hero h1 {
+  color: var(--text-primary);
+  text-shadow: 0 0 18px rgba(var(--mint-rgb), 0.55), 0 0 48px rgba(var(--coral-rgb), 0.35);
+}
+.section-heading,
+.section-panel .section-heading,
+.show-card h3,
+.member-name,
+.setting-title {
+  color: var(--text-primary);
+}
+.home-page > .subheading,
+.campaign-banner p,
+.section-page-header .subheading,
+.section-kicker,
+.show-card p,
+.show-number,
+.member-role,
+.setting-copy p,
+.team-summary-stats span,
+.home-stats span,
+.current-show-summary > span:last-child,
+.schedule-summary > p:not(.section-kicker),
+.team-summary-panel > p:not(.section-kicker),
+.action-copy small,
+.result-band p,
+.management-side > p,
+.ending-hero p {
+  color: var(--muted);
+}
+.section-page-header .eyebrow,
+.section-topline > .section-kicker,
+.current-show-summary .section-kicker,
+.difficulty-select legend {
+  color: var(--mint);
+}
+.difficulty-option.is-selected,
+.show-card.is-current {
+  border-color: var(--mint);
+  background: rgba(var(--mint-rgb), 0.14);
+  box-shadow: inset 3px 0 var(--mint), var(--shadow-glow-mint);
+}
+.show-card.is-current .show-state {
+  color: var(--mint);
+  background: rgba(var(--mint-rgb), 0.14);
+}
+.show-card.is-done .show-state {
+  color: var(--yellow);
+  background: rgba(var(--yellow-rgb), 0.15);
+}
+.resource-symbol.credit,
+.reward-chip.credit {
+  color: var(--yellow);
+  background: rgba(var(--yellow-rgb), 0.16);
+}
+.resource-symbol.popularity,
+.reward-chip:not(.credit) {
+  color: var(--coral);
+  background: rgba(var(--coral-rgb), 0.14);
+}
+.primary-button {
+  background: #fff;
+  color: #07041A;
+  box-shadow: var(--shadow-glow-mint);
+}
+.primary-button:hover {
+  background: #fff;
+  box-shadow: 0 0 20px rgba(var(--coral-rgb), 0.55), 0 0 48px rgba(var(--coral-rgb), 0.22);
+}
+.secondary-button {
+  background: var(--surface-inset);
+  color: var(--text-primary);
+  border-color: rgba(var(--mint-rgb), 0.42);
+  backdrop-filter: blur(18px);
+}
+.secondary-button:hover {
+  border-color: var(--coral);
+  box-shadow: 0 0 20px rgba(var(--coral-rgb), 0.25);
+}
+.app-nav a[aria-current='page'] {
+  color: var(--mint);
+  border-bottom-color: var(--mint);
+}
+.action-button:hover:not(:disabled) {
+  background: rgba(var(--coral-rgb), 0.12);
+  border-color: var(--coral);
+}
+.member-row:nth-child(3n) .member-token {
+  color: var(--coral);
+}
+.tutorial-hint {
+  color: var(--text-primary);
+  background: rgba(23, 11, 58, 0.88);
+  border-color: rgba(var(--mint-rgb), 0.42);
+}
+.current-difficulty,
+.action-cost.free,
+.ending-result-row b {
+  color: var(--mint);
+}
+.action-index {
+  color: var(--mint);
+  background: rgba(var(--mint-rgb), 0.13);
 }

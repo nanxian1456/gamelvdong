@@ -25,7 +25,7 @@
   opacity: 1;
 }
 .stage-scene:focus-visible {
-  outline: 2px solid #43a7ff;
+  outline: 2px solid var(--mint);
   outline-offset: 3px;
 }
 .lane-keypad {
@@ -48,7 +48,7 @@
   padding: 0;
   border: 1px solid rgba(255, 255, 255, 0.38);
   border-radius: 3px;
-  background: rgba(8, 22, 32, 0.84);
+  background: rgba(23, 11, 58, 0.84);
   color: #fff;
   cursor: pointer;
   touch-action: none;
@@ -62,11 +62,11 @@
   font: 700 13px/1 sans-serif;
 }
 .lane-key:active {
-  border-color: #43a7ff;
-  background: rgba(67, 167, 255, 0.65);
+  border-color: var(--mint);
+  background: rgba(var(--mint-rgb), 0.4);
 }
 .lane-key:focus-visible {
-  outline: 2px solid #43a7ff;
+  outline: 2px solid var(--mint);
   outline-offset: -3px;
 }
 
@@ -96,7 +96,7 @@
 }
 .judgement-banner[data-grade='perfect'] {
   color: var(--yellow);
-  text-shadow: 0 0 18px rgba(242, 198, 79, 0.55), 0 2px 20px rgba(0, 0, 0, 0.45);
+  text-shadow: 0 0 18px rgba(var(--yellow-rgb), 0.55), 0 2px 20px rgba(0, 0, 0, 0.45);
 }
 .judgement-banner.pop {
   animation: judgement-pop var(--dur-pop) ease-out;
@@ -139,13 +139,13 @@
   width: 100%;
   min-height: 58px;
   background: #fff;
-  color: #111318;
+  color: #07041A;
   font-size: 16px;
   letter-spacing: 0.06em;
   box-shadow: var(--shadow-glow-mint), var(--shadow-lift);
 }
 .hero-action-row .primary-button:hover {
-  box-shadow: 0 0 44px rgba(67, 216, 188, 0.5), 0 12px 32px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 0 44px rgba(var(--coral-rgb), 0.5), 0 12px 32px rgba(0, 0, 0, 0.45);
   transform: translateY(-2px);
 }
 .hero-action-top {
@@ -191,11 +191,11 @@
 }
 .schedule-list .show-card.is-done::before {
   background: var(--yellow);
-  box-shadow: 0 0 10px rgba(242, 198, 79, 0.7);
+  box-shadow: 0 0 10px rgba(var(--yellow-rgb), 0.7);
 }
 .schedule-list .show-card.is-current::before {
   background: var(--mint);
-  box-shadow: 0 0 12px rgba(67, 216, 188, 0.9);
+  box-shadow: 0 0 12px rgba(var(--mint-rgb), 0.9);
 }
 .schedule-list .show-card.is-locked {
   opacity: 0.55;
@@ -233,7 +233,7 @@
 .ending-stamp.rank-gold {
   border-color: var(--yellow);
   color: var(--yellow);
-  box-shadow: var(--shadow-glow-gold), inset 0 0 24px rgba(242, 198, 79, 0.15);
+  box-shadow: var(--shadow-glow-gold), inset 0 0 24px rgba(var(--yellow-rgb), 0.15);
 }
 .ending-stamp.rank-silver {
   border-color: #cfd8dc;
@@ -278,11 +278,11 @@
 
 /* ===== 霓虹夜场主题对齐：舞台底色 + 按键激活色 ===== */
 .stage-scene {
-  background: #0b0714;
+  background: var(--night);
 }
 .lane-key:active {
   border-color: var(--mint);
-  background: rgba(67, 216, 188, 0.4);
+  background: rgba(var(--mint-rgb), 0.4);
 }
 .lane-key:focus-visible {
   outline-color: var(--mint);
